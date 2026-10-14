@@ -1,4 +1,4 @@
-import { Eye, EyeOff } from 'lucide-react';
+import { RiEyeLine as Eye, RiEyeOffLine as EyeOff } from '@remixicon/react';
 import type { ComponentProps, Ref } from 'react';
 import { useState } from 'react';
 import { Input } from '@/components/ui/input';

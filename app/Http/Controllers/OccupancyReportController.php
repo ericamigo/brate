@@ -30,14 +30,15 @@ class OccupancyReportController extends Controller
         if ($bills->isNotEmpty()) {
             $start = $bills->getCollection()->min('period_start')->toDateString();
             $end = $bills->getCollection()->max('period_end')->toDateString();
-            $bills->getCollection()->load(['unit.building.company', 'unit.tenancies' => fn ($query) => $this->occupants($query, $start, $end)]);
+            $bills->getCollection()->load(['biller', 'unit.building.company', 'unit.tenancies' => fn ($query) => $this->occupants($query, $start, $end)]);
         }
 
-        return Inertia::render('business-rates/report', [
+        return Inertia::render('occupancy-report/index', [
             'bills' => $bills,
             'rows' => $bills->getCollection()->flatMap(fn (BusinessRateBill $bill) => $bill->occupancyRows()->map(fn (array $row) => [
                 'bill_id' => $bill->id,
                 'reference_number' => $bill->reference_number,
+                'biller' => $bill->biller->name,
                 'building' => $bill->unit->building->name,
                 'company' => $bill->unit->building->company->name,
                 'unit' => $bill->unit->name,

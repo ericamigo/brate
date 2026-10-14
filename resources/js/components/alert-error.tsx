@@ -1,4 +1,4 @@
-import { AlertCircleIcon } from 'lucide-react';
+import { RiErrorWarningLine as AlertCircleIcon } from '@remixicon/react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 export default function AlertError({

@@ -1,5 +1,18 @@
+import { route } from 'ziggy-js';
 import { Link } from '@inertiajs/react';
-import { BookOpen, FolderGit2, LayoutGrid } from 'lucide-react';
+import {
+    RiBookOpenLine as BookOpen,
+    RiGitRepositoryLine as FolderGit2,
+    RiBarChartLine,
+    RiBuildingLine,
+    RiBuilding2Line,
+    RiDoorOpenLine,
+    RiGroupLine,
+    RiKeyLine,
+    RiBankLine,
+    RiBillLine,
+    RiFileTextLine,
+} from '@remixicon/react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -13,14 +26,34 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { dashboard } from '@/routes';
+
 import type { NavItem } from '@/types';
 
 const mainNavItems: NavItem[] = [
+    { title: 'Occupancy Report', href: route('home'), icon: RiBarChartLine },
     {
-        title: 'Dashboard',
-        href: dashboard(),
-        icon: LayoutGrid,
+        title: 'Companies',
+        href: route('companies.index'),
+        icon: RiBuildingLine,
+    },
+    {
+        title: 'Buildings',
+        href: route('buildings.index'),
+        icon: RiBuilding2Line,
+    },
+    { title: 'Units', href: route('units.index'), icon: RiDoorOpenLine },
+    { title: 'Tenants', href: route('tenants.index'), icon: RiGroupLine },
+    { title: 'Tenancies', href: route('tenancies.index'), icon: RiKeyLine },
+    { title: 'Billers', href: route('billers.index'), icon: RiBankLine },
+    {
+        title: 'Bills',
+        href: route('business-rate-bills.index'),
+        icon: RiBillLine,
+    },
+    {
+        title: 'Documents',
+        href: route('documents.index'),
+        icon: RiFileTextLine,
     },
 ];
 
@@ -44,7 +77,7 @@ export function AppSidebar() {
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
-                            <Link href={dashboard()} prefetch>
+                            <Link href={route('home')} prefetch>
                                 <AppLogo />
                             </Link>
                         </SidebarMenuButton>

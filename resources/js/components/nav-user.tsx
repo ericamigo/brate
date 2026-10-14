@@ -1,5 +1,5 @@
 import { usePage } from '@inertiajs/react';
-import { ChevronsUpDown } from 'lucide-react';
+import { RiExpandUpDownLine as ChevronsUpDown } from '@remixicon/react';
 import {
     DropdownMenu,
     DropdownMenuContent,

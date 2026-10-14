@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Biller;
 use App\Models\Building;
 use App\Models\BusinessRateBill;
 use App\Models\Company;
@@ -14,6 +15,8 @@ class BusinessRatesSeeder extends Seeder
 {
     public function run(): void
     {
+        $biller = Biller::firstOrCreate(['name' => 'London Borough of Hounslow (Council)']);
+        Biller::firstOrCreate(['name' => 'CDER']);
         $company = Company::firstOrCreate(['name' => 'Example Company']);
         $building = Building::firstOrCreate(['company_id' => $company->id, 'name' => 'Building A']);
         $unit = Unit::firstOrCreate(['building_id' => $building->id, 'name' => 'Unit 101']);
@@ -33,6 +36,6 @@ class BusinessRatesSeeder extends Seeder
         BusinessRateBill::firstOrCreate([
             'unit_id' => $unit->id,
             'reference_number' => 'EXAMPLE-2026-Q1',
-        ], ['period_start' => '2026-01-01', 'period_end' => '2026-03-31', 'amount' => '1200.00']);
+        ], ['biller_id' => $biller->id, 'period_start' => '2026-01-01', 'period_end' => '2026-03-31', 'amount' => '1200.00']);
     }
 }

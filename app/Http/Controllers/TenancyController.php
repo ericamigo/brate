@@ -20,7 +20,7 @@ class TenancyController extends Controller
             ->when($filters['search'] ?? null, fn ($query, $search) => $query->whereHas('unit', fn ($query) => $query->where('name', 'like', '%'.$search.'%')))
             ->orderByDesc('id')->paginate(15)->withQueryString();
 
-        return Inertia::render('business-rates/index', [
+        return Inertia::render('tenancies/index', [
             'title' => 'Tenancies', 'singular' => 'Tenancy', 'resource' => 'tenancies',
             'columns' => ['unit.building.name' => 'Building', 'unit.name' => 'Unit', 'tenant.name' => 'Tenant', 'move_in_date' => 'Move-in date', 'move_out_date' => 'Move-out date'], 'records' => $records,
         ]);
@@ -28,7 +28,7 @@ class TenancyController extends Controller
 
     public function create(): Response
     {
-        return Inertia::render('business-rates/form', $this->formData(new Tenancy));
+        return Inertia::render('tenancies/create', $this->formData(new Tenancy));
     }
 
     public function store(TenancyRequest $request): RedirectResponse
@@ -40,7 +40,7 @@ class TenancyController extends Controller
 
     public function edit(Tenancy $tenancy): Response
     {
-        return Inertia::render('business-rates/form', $this->formData($tenancy));
+        return Inertia::render('tenancies/edit', $this->formData($tenancy));
     }
 
     public function update(TenancyRequest $request, Tenancy $tenancy): RedirectResponse

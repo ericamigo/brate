@@ -18,7 +18,7 @@ class CompanyController extends Controller
             ->when($filters['search'] ?? null, fn ($query, $search) => $query->where('name', 'like', '%'.$search.'%'))
             ->orderByDesc('id')->paginate(15)->withQueryString();
 
-        return Inertia::render('business-rates/index', [
+        return Inertia::render('companies/index', [
             'title' => 'Companies', 'singular' => 'Company', 'resource' => 'companies',
             'columns' => ['name' => 'Name'], 'records' => $records,
         ]);
@@ -26,7 +26,7 @@ class CompanyController extends Controller
 
     public function create(): Response
     {
-        return Inertia::render('business-rates/form', $this->formData(new Company));
+        return Inertia::render('companies/create', $this->formData(new Company));
     }
 
     public function store(CompanyRequest $request): RedirectResponse
@@ -38,7 +38,7 @@ class CompanyController extends Controller
 
     public function edit(Company $company): Response
     {
-        return Inertia::render('business-rates/form', $this->formData($company));
+        return Inertia::render('companies/edit', $this->formData($company));
     }
 
     public function update(CompanyRequest $request, Company $company): RedirectResponse

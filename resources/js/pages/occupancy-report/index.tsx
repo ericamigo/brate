@@ -1,11 +1,20 @@
-import { Link, router, useForm, usePage } from '@inertiajs/react';
-import type { FormEvent } from 'react';
-import InputError from '@/components/input-error';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Pages, Shell, controlClass, date } from './shared';
-import type { Pagination } from './shared';
+import { Link, router, useForm, usePage } from "@inertiajs/react";
+import type { FormEvent } from "react";
+import { DateRangePicker } from "@/components/date-range-picker";
+import InputError from "@/components/input-error";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import { Pages } from "@/components/pagination";
+import { Shell } from "@/components/page-shell";
+import { date } from "@/lib/date";
+import type { Pagination } from "@/components/pagination";
 
 type Property = {
     id: number;
@@ -16,6 +25,7 @@ type Property = {
 type Row = {
     bill_id: number;
     reference_number: string | null;
+    biller: string;
     company: string;
     building: string;
     unit: string;
@@ -52,45 +62,47 @@ export default function Report({
     units,
 }: Props) {
     const form = useForm<Filters>({
-        company_id: String(filters.company_id ?? ''),
-        building_id: String(filters.building_id ?? ''),
-        unit_id: String(filters.unit_id ?? ''),
-        period_start: filters.period_start ?? '',
-        period_end: filters.period_end ?? '',
+        company_id: String(filters.company_id ?? ""),
+        building_id: String(filters.building_id ?? ""),
+        unit_id: String(filters.unit_id ?? ""),
+        period_start: filters.period_start ?? "",
+        period_end: filters.period_end ?? "",
     });
     const { errors } = usePage<{ errors: Record<string, string> }>().props;
     function submit(event: FormEvent) {
         event.preventDefault();
-        router.get('/', form.data);
+        router.get("/", form.data);
     }
     function change(
-        key: 'company_id' | 'building_id' | 'unit_id',
+        key: "company_id" | "building_id" | "unit_id",
         value: string,
     ) {
         const next = { ...form.data, [key]: value };
-        if (key === 'company_id') {
-            next.building_id = '';
-            next.unit_id = '';
+        if (key === "company_id") {
+            next.building_id = "";
+            next.unit_id = "";
         }
-        if (key === 'building_id') next.unit_id = '';
+        if (key === "building_id") next.unit_id = "";
         form.setData(next);
-        if (key !== 'unit_id') router.get('/', next, { preserveState: true });
+        if (key !== "unit_id") router.get("/", next, { preserveState: true });
     }
     const selects: {
-        name: 'company_id' | 'building_id' | 'unit_id';
+        name: "company_id" | "building_id" | "unit_id";
         label: string;
         options: Property[];
     }[] = [
-        { name: 'company_id', label: 'Company', options: companies },
-        { name: 'building_id', label: 'Building', options: buildings },
-        { name: 'unit_id', label: 'Unit', options: units },
+        { name: "company_id", label: "Company", options: companies },
+        { name: "building_id", label: "Building", options: buildings },
+        { name: "unit_id", label: "Unit", options: units },
     ];
     return (
         <Shell title="Occupancy Report">
             <div className="mb-7 flex flex-wrap items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-semibold">Occupancy Report</h1>
-                    <p className="mt-2 text-muted-foreground">
+                    <h1 className="text-2xl font-semibold tracking-tight">
+                        Occupancy Report
+                    </h1>
+                    <p className="mt-1 text-sm text-muted-foreground">
                         Identify occupants during each business rates billing
                         period.
                     </p>
@@ -103,51 +115,66 @@ export default function Report({
                 onSubmit={submit}
                 className="mb-6 rounded-lg border bg-card p-5"
             >
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     {selects.map(({ name, label, options }) => (
                         <div key={name} className="grid gap-2">
                             <Label htmlFor={name}>{label}</Label>
-                            <select
-                                id={name}
-                                value={form.data[name]}
-                                onChange={(event) =>
-                                    change(name, event.target.value)
+                            <Select
+                                name={name}
+                                value={form.data[name] || "all"}
+                                onValueChange={(value) =>
+                                    change(name, value === "all" ? "" : value)
                                 }
-                                className={controlClass}
                             >
-                                <option value="">
-                                    All {label.toLowerCase()}s
-                                </option>
-                                {options.map((option) => (
-                                    <option key={option.id} value={option.id}>
-                                        {option.company?.name ??
-                                            option.building?.name}
-                                        {(option.company || option.building) &&
-                                            ' / '}
-                                        {option.name}
-                                    </option>
-                                ))}
-                            </select>
+                                <SelectTrigger
+                                    id={name}
+                                    className="w-full"
+                                    aria-invalid={Boolean(errors[name])}
+                                >
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">
+                                        All {label.toLowerCase()}s
+                                    </SelectItem>
+                                    {options.map((option) => (
+                                        <SelectItem
+                                            key={option.id}
+                                            value={String(option.id)}
+                                        >
+                                            {option.company?.name ??
+                                                option.building?.name}
+                                            {(option.company ||
+                                                option.building) &&
+                                                " / "}
+                                            {option.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                             <InputError message={errors[name]} />
                         </div>
                     ))}
-                    {(['period_start', 'period_end'] as const).map((name) => (
-                        <div key={name} className="grid gap-2">
-                            <Label htmlFor={name}>
-                                Billing period{' '}
-                                {name === 'period_start' ? 'from' : 'to'}
-                            </Label>
-                            <Input
-                                type="date"
-                                id={name}
-                                value={form.data[name]}
-                                onChange={(event) =>
-                                    form.setData(name, event.target.value)
-                                }
-                            />
-                            <InputError message={errors[name]} />
-                        </div>
-                    ))}
+                    <div className="grid gap-2">
+                        <Label htmlFor="billing-period">Billing period</Label>
+                        <DateRangePicker
+                            id="billing-period"
+                            start={form.data.period_start}
+                            end={form.data.period_end}
+                            onChange={(start, end) =>
+                                form.setData((data) => ({
+                                    ...data,
+                                    period_start: start,
+                                    period_end: end,
+                                }))
+                            }
+                            invalid={Boolean(
+                                errors.period_start || errors.period_end,
+                            )}
+                        />
+                        <InputError message={errors.period_start} />
+                        <InputError message={errors.period_end} />
+                    </div>
                 </div>
                 <div className="mt-5 flex flex-wrap items-center gap-4">
                     <Button>Apply Filters</Button>
@@ -168,13 +195,14 @@ export default function Report({
                     <thead className="bg-muted">
                         <tr>
                             {[
-                                'Building',
-                                'Unit',
-                                'Period Covered',
-                                'Occupant',
-                                'Move-in Date',
-                                'Move-out Date',
-                                'Occupied Period',
+                                "Building",
+                                "Unit",
+                                "Biller",
+                                "Period Covered",
+                                "Occupant",
+                                "Move-in Date",
+                                "Move-out Date",
+                                "Occupied Period",
                             ].map((label) => (
                                 <th
                                     key={label}
@@ -188,7 +216,7 @@ export default function Report({
                     <tbody>
                         {rows.map((row) => (
                             <tr
-                                key={`${row.bill_id}-${row.tenancy_id ?? 'vacant'}`}
+                                key={`${row.bill_id}-${row.tenancy_id ?? "vacant"}`}
                                 className="border-t"
                             >
                                 <td className="px-5 py-4">
@@ -198,8 +226,9 @@ export default function Report({
                                     </p>
                                 </td>
                                 <td className="px-5 py-4">{row.unit}</td>
+                                <td className="px-5 py-4">{row.biller}</td>
                                 <td className="px-5 py-4 whitespace-nowrap">
-                                    {date(row.period_start)} –{' '}
+                                    {date(row.period_start)} –{" "}
                                     {date(row.period_end)}
                                     <Link
                                         href={`/business-rate-bills/${row.bill_id}/edit`}
@@ -210,7 +239,7 @@ export default function Report({
                                     </Link>
                                 </td>
                                 <td className="px-5 py-4">
-                                    {row.occupant ?? 'Vacant'}
+                                    {row.occupant ?? "Vacant"}
                                 </td>
                                 <td className="px-5 py-4 whitespace-nowrap">
                                     {date(row.move_in_date)}
@@ -221,14 +250,14 @@ export default function Report({
                                 <td className="px-5 py-4 whitespace-nowrap">
                                     {row.occupied_start
                                         ? `${date(row.occupied_start)} – ${date(row.occupied_end)}`
-                                        : '—'}
+                                        : "—"}
                                 </td>
                             </tr>
                         ))}
                         {!rows.length && (
                             <tr>
                                 <td
-                                    colSpan={7}
+                                    colSpan={8}
                                     className="p-12 text-center text-muted-foreground"
                                 >
                                     No bills found. Adjust the filters or add a
