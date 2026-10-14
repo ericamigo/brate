@@ -12,6 +12,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { date } from '@/lib/date';
 import { Shell } from '@/components/page-shell';
 const controlClass =
     'w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring';
@@ -39,13 +40,29 @@ export default function Create({ record, fields }: Props) {
                     record[field.name] == null
                         ? ''
                         : String(record[field.name]);
-                if (field.type === 'date') value = value.slice(0, 10);
+                if (field.type === 'date') value = value ? date(value) : '';
                 return [field.name, value];
             }),
         ),
     );
     function submit(event: FormEvent) {
         event.preventDefault();
+        form.transform((data) =>
+            Object.fromEntries(
+                Object.entries(data).map(([key, value]) => {
+                    if (key === 'move_in_date' || key === 'move_out_date') {
+                        const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(value);
+                        return [
+                            key,
+                            match
+                                ? `${match[3]}-${match[2]}-${match[1]}`
+                                : value,
+                        ];
+                    }
+                    return [key, value];
+                }),
+            ),
+        );
         form.post(`/${resource}`);
     }
     return (
@@ -156,7 +173,21 @@ export default function Create({ record, fields }: Props) {
                                 ) : (
                                     <Input
                                         id={field.name}
-                                        type={field.type}
+                                        type={
+                                            field.type === 'date'
+                                                ? 'text'
+                                                : field.type
+                                        }
+                                        placeholder={
+                                            field.type === 'date'
+                                                ? 'dd/mm/yyyy'
+                                                : undefined
+                                        }
+                                        pattern={
+                                            field.type === 'date'
+                                                ? '[0-9]{2}/[0-9]{2}/[0-9]{4}'
+                                                : undefined
+                                        }
                                         value={form.data[field.name]}
                                         onChange={(event) =>
                                             form.setData(
