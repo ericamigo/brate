@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Company;
+use App\Services\Imports\JsonImport;
 use App\Services\Imports\ReLeasedImport;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -28,6 +29,16 @@ class ImportController extends Controller
         $result = $importer->import($request->file('file'), (int) $data['company_id']);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => "Import complete: {$result['created']} tenancies created, {$result['skipped']} existing tenancies skipped, {$result['missingStart']} skipped without a start date."]);
+
+        return to_route('imports.index');
+    }
+
+    public function storeJson(Request $request, JsonImport $importer): RedirectResponse
+    {
+        $data = $request->validate(['json' => ['required', 'string', 'max:2097152']]);
+        $result = $importer->import($data['json']);
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => "JSON import complete: {$result['created']} tenancies created, {$result['skipped']} existing tenancies skipped."]);
 
         return to_route('imports.index');
     }

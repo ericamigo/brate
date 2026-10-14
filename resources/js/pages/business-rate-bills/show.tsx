@@ -15,6 +15,7 @@ type Bill = {
     case_number: string | null;
     reference_number: string | null;
     stage: string | null;
+    council: string | null;
     amount: string;
     period_start: string;
     period_end: string;
@@ -65,6 +66,7 @@ export default function Show({ bill }: { bill: Bill }) {
                     Building: bill.unit.building.name,
                     Unit: bill.unit.name,
                     Biller: bill.biller.name,
+                    Council: bill.council,
                     'Period covered': `${date(bill.period_start)} – ${date(bill.period_end)}`,
                     Amount: formatMoney(bill.amount),
                     Stage: bill.stage

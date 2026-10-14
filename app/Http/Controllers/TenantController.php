@@ -16,7 +16,7 @@ class TenantController extends Controller
         $filters = $request->validate(['search' => ['nullable', 'string', 'max:255']]);
         $records = Tenant::query()->with(['currentTenancies.unit.building.company'])
             ->when($filters['search'] ?? null, fn ($query, $search) => $query->where('name', 'like', '%'.$search.'%'))
-            ->orderByDesc('id')->paginate(15)->withQueryString();
+            ->orderBy('name')->orderBy('id')->paginate(15)->withQueryString();
 
         return Inertia::render('tenants/index', [
             'title' => 'Tenants', 'singular' => 'Tenant', 'resource' => 'tenants',

@@ -16,7 +16,7 @@ use Illuminate\Support\Collection;
  * @property CarbonImmutable $period_start
  * @property CarbonImmutable $period_end
  */
-#[Fillable(['unit_id', 'case_number', 'reference_number', 'biller_id', 'period_start', 'period_end', 'amount', 'stage'])]
+#[Fillable(['unit_id', 'case_number', 'reference_number', 'biller_id', 'council', 'period_start', 'period_end', 'amount', 'stage'])]
 class BusinessRateBill extends Model
 {
     /** @return MorphMany<Document, $this> */

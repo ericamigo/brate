@@ -113,7 +113,16 @@ export default function Index({ columns, records }: Props) {
                             >
                                 {Object.keys(columns).map((key) => (
                                     <td key={key} className="px-5 py-4">
-                                        {cell(record, key)}
+                                        {key === 'name' ? (
+                                            <Link
+                                                href={`/tenants/${record.id}`}
+                                                className="font-bold hover:underline"
+                                            >
+                                                {cell(record, key)}
+                                            </Link>
+                                        ) : (
+                                            cell(record, key)
+                                        )}
                                     </td>
                                 ))}
                                 <td className="px-5 py-4">

@@ -38,7 +38,7 @@ class BusinessRateBillController extends Controller
 
         return Inertia::render('business-rate-bills/index', [
             'title' => 'Business Rate Bills', 'singular' => 'Business Rate Bill', 'resource' => 'business-rate-bills',
-            'columns' => ['case_number' => 'Case Number', 'reference_number' => 'Reference', 'biller.name' => 'Biller', 'unit.building.name' => 'Building', 'unit.name' => 'Unit', 'period_start' => 'Period Start', 'period_end' => 'Period End', 'amount' => 'Amount', 'stage' => 'Stage'], 'records' => $records,
+            'columns' => ['case_number' => 'Case Number', 'reference_number' => 'Reference', 'biller.name' => 'Biller', 'council' => 'Council', 'unit.building.name' => 'Building', 'unit.name' => 'Unit', 'period_start' => 'Period Start', 'period_end' => 'Period End', 'amount' => 'Amount', 'stage' => 'Stage'], 'records' => $records,
             'filters' => $filters,
             'billers' => Biller::orderBy('name')->get(['id', 'name']),
             'stages' => collect(BillingStage::cases())->map(fn (BillingStage $stage) => ['value' => $stage->value, 'label' => $stage->name]),
@@ -120,6 +120,7 @@ class BusinessRateBillController extends Controller
                 ['name' => 'case_number', 'label' => 'Case number', 'type' => 'text', 'required' => false],
                 ['name' => 'unit_id', 'label' => 'Unit', 'type' => 'select', 'required' => true, 'options' => $units],
                 ['name' => 'biller_id', 'label' => 'Biller', 'type' => 'select', 'required' => true, 'options' => Biller::orderBy('name')->orderBy('id')->pluck('name', 'id')->all()],
+                ['name' => 'council', 'label' => 'Council', 'type' => 'text', 'required' => false],
                 ['name' => 'reference_number', 'label' => 'Reference number', 'type' => 'text', 'required' => false],
                 ['name' => 'period_start', 'label' => 'Period start', 'type' => 'date', 'required' => true],
                 ['name' => 'period_end', 'label' => 'Period end', 'type' => 'date', 'required' => true],

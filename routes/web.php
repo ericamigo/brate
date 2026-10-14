@@ -14,16 +14,37 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', OccupancyReportController::class)->name('home');
 
-Route::resource('billers', BillerController::class)->only(['index', 'store', 'update', 'destroy']);
-Route::resource('companies', CompanyController::class)->only(['index', 'store', 'update', 'destroy']);
-Route::resource('buildings', BuildingController::class)->only(['index', 'store', 'update', 'destroy']);
-Route::resource('units', UnitController::class)->only(['index', 'store', 'update', 'destroy']);
-Route::resource('tenants', TenantController::class)->only(['index', 'show', 'store', 'update', 'destroy']);
-Route::resource('tenancies', TenancyController::class)->except('show');
+Route::resource('billers', BillerController::class)
+    ->only(['index', 'store', 'update', 'destroy']);
+
+Route::resource('companies', CompanyController::class)
+    ->only(['index', 'store', 'update', 'destroy']);
+
+Route::resource('buildings', BuildingController::class)
+    ->only(['index', 'store', 'update', 'destroy']);
+
+Route::resource('units', UnitController::class)
+    ->only(['index', 'store', 'update', 'destroy']);
+
+Route::resource('tenants', TenantController::class)
+    ->only(['index', 'show', 'store', 'update', 'destroy']);
+
+Route::resource('tenancies', TenancyController::class)
+    ->except('show');
+
 Route::resource('business-rate-bills', BusinessRateBillController::class);
-Route::post('business-rate-bills/{businessRateBill}/documents', [BusinessRateBillController::class, 'storeDocuments'])->name('business-rate-bills.documents.store');
-Route::resource('documents', DocumentController::class)->only(['index', 'store', 'show', 'destroy']);
-Route::resource('imports', ImportController::class)->only(['index', 'store']);
+
+Route::post('business-rate-bills/{businessRateBill}/documents', [BusinessRateBillController::class, 'storeDocuments'])
+    ->name('business-rate-bills.documents.store');
+
+Route::resource('documents', DocumentController::class)
+    ->only(['index', 'store', 'show', 'destroy']);
+
+Route::resource('imports', ImportController::class)
+    ->only(['index', 'store']);
+
+Route::post('imports/json', [ImportController::class, 'storeJson'])
+    ->name('imports.json.store');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('dashboard', 'dashboard')->name('dashboard');
