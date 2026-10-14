@@ -173,3 +173,46 @@ it('searches tenancies by tenant or unit name while preserving filters', functio
     $this->get('/tenancies?'.http_build_query(['search' => 'Searchable', 'unit_id' => $match->unit_id]))
         ->assertInertia(fn (Assert $page) => $page->where('records.total', 1)->where('records.data.0.id', $match->id));
 });
+
+it('filters bills by biller, stage, company and building independently and together', function () {
+    $bill = BusinessRateBill::factory()->create(['stage' => BillingStage::Enforcement]);
+    BusinessRateBill::factory()->create(['stage' => BillingStage::Summon]);
+    $filters = [
+        'biller_id' => $bill->biller_id,
+        'stage' => BillingStage::Enforcement->value,
+        'company_id' => $bill->unit->building->company_id,
+        'building_id' => $bill->unit->building_id,
+    ];
+
+    foreach ($filters as $key => $value) {
+        $this->get('/business-rate-bills?'.http_build_query([$key => $value]))
+            ->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->where('records.total', 1)
+            ->where('records.data.0.id', $bill->id));
+    }
+
+    $this->get('/business-rate-bills?'.http_build_query($filters + ['search' => $bill->unit->name]))
+        ->assertOk()->assertInertia(fn (Assert $page) => $page
+        ->where('records.total', 1)
+        ->where('records.data.0.id', $bill->id)
+        ->where('filters.stage', 'enforcement')
+        ->has('billers', 2)->has('stages', 3)->has('companies', 2)->has('buildings', 2));
+
+    $this->get('/business-rate-bills?'.http_build_query(array_replace($filters, ['stage' => 'summon'])))
+        ->assertOk()->assertInertia(fn (Assert $page) => $page->where('records.total', 0));
+
+    BusinessRateBill::factory()->count(15)->for($bill->unit)->for($bill->biller)
+        ->create(['stage' => BillingStage::Enforcement]);
+    $this->get('/business-rate-bills?'.http_build_query($filters + ['page' => 2]))
+        ->assertOk()->assertInertia(fn (Assert $page) => $page
+        ->where('records.total', 16)->has('records.data', 1)
+        ->where('records.prev_page_url', fn ($url) => collect($filters)->every(
+            fn ($value, $key) => str_contains($url, $key.'='.$value)
+        )));
+});
+
+it('validates bill index filters', function () {
+    $this->from('/business-rate-bills')->get('/business-rate-bills?'.http_build_query([
+        'biller_id' => 999999, 'stage' => 'unknown', 'company_id' => 999999, 'building_id' => 999999,
+    ]))->assertSessionHasErrors(['biller_id', 'stage', 'company_id', 'building_id']);
+});

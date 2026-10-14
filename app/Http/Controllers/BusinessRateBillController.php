@@ -5,12 +5,15 @@ namespace App\Http\Controllers;
 use App\Enums\BillingStage;
 use App\Http\Requests\BusinessRateBillRequest;
 use App\Models\Biller;
+use App\Models\Building;
 use App\Models\BusinessRateBill;
+use App\Models\Company;
 use App\Models\Unit;
 use App\Services\BillDocuments;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -18,14 +21,29 @@ class BusinessRateBillController extends Controller
 {
     public function index(Request $request): Response
     {
-        $filters = $request->validate(['search' => ['nullable', 'string', 'max:255']]);
+        $filters = $request->validate([
+            'search' => ['nullable', 'string', 'max:255'],
+            'biller_id' => ['nullable', 'integer', 'exists:billers,id'],
+            'stage' => ['nullable', Rule::enum(BillingStage::class)],
+            'company_id' => ['nullable', 'integer', 'exists:companies,id'],
+            'building_id' => ['nullable', 'integer', 'exists:buildings,id'],
+        ]);
         $records = BusinessRateBill::query()->with(['unit.building', 'biller'])
             ->when($filters['search'] ?? null, fn ($query, $search) => $query->whereHas('unit', fn ($query) => $query->where('name', 'like', '%'.$search.'%')))
+            ->when($filters['biller_id'] ?? null, fn ($query, $id) => $query->where('biller_id', $id))
+            ->when($filters['stage'] ?? null, fn ($query, $stage) => $query->where('stage', $stage))
+            ->when($filters['company_id'] ?? null, fn ($query, $id) => $query->whereHas('unit.building', fn ($query) => $query->where('company_id', $id)))
+            ->when($filters['building_id'] ?? null, fn ($query, $id) => $query->whereHas('unit', fn ($query) => $query->where('building_id', $id)))
             ->orderByDesc('id')->paginate(15)->withQueryString();
 
         return Inertia::render('business-rate-bills/index', [
             'title' => 'Business Rate Bills', 'singular' => 'Business Rate Bill', 'resource' => 'business-rate-bills',
             'columns' => ['case_number' => 'Case Number', 'reference_number' => 'Reference', 'biller.name' => 'Biller', 'unit.building.name' => 'Building', 'unit.name' => 'Unit', 'period_start' => 'Period Start', 'period_end' => 'Period End', 'amount' => 'Amount', 'stage' => 'Stage'], 'records' => $records,
+            'filters' => $filters,
+            'billers' => Biller::orderBy('name')->get(['id', 'name']),
+            'stages' => collect(BillingStage::cases())->map(fn (BillingStage $stage) => ['value' => $stage->value, 'label' => $stage->name]),
+            'companies' => Company::orderBy('name')->get(['id', 'name']),
+            'buildings' => Building::with('company:id,name')->orderBy('name')->get(['id', 'name', 'company_id']),
         ]);
     }
 

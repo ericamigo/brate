@@ -4,6 +4,14 @@ import type { FormEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import InputError from '@/components/input-error';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { Pages } from '@/components/pagination';
 import type { Pagination } from '@/components/pagination';
 import { Shell } from '@/components/page-shell';
@@ -18,6 +26,22 @@ const resource = 'business-rate-bills';
 type Props = {
     columns: Record<string, string>;
     records: Pagination & { data: RecordRow[] };
+    filters: {
+        search?: string | null;
+        biller_id?: number | string | null;
+        stage?: string | null;
+        company_id?: number | string | null;
+        building_id?: number | string | null;
+    };
+    billers: { id: number; name: string }[];
+    stages: { value: string; label: string }[];
+    companies: { id: number; name: string }[];
+    buildings: {
+        id: number;
+        name: string;
+        company_id: number;
+        company: { name: string };
+    }[];
 };
 function cell(record: RecordRow, key: string): string {
     let value: unknown = record;
@@ -41,14 +65,85 @@ function cell(record: RecordRow, key: string): string {
           ? String(value)
           : '—';
 }
-export default function Index({ columns, records }: Props) {
-    const { url, props } = usePage<{ errors: Record<string, string> }>();
-    const [search, setSearch] = useState(
-        new URLSearchParams(url.split('?')[1] ?? '').get('search') ?? '',
+export default function Index({
+    columns,
+    records,
+    filters,
+    billers,
+    stages,
+    companies,
+    buildings,
+}: Props) {
+    const { props } = usePage<{ errors: Record<string, string> }>();
+    const [search, setSearch] = useState(filters.search ?? '');
+    const [billerId, setBillerId] = useState(String(filters.biller_id ?? ''));
+    const [stage, setStage] = useState(filters.stage ?? '');
+    const [companyId, setCompanyId] = useState(
+        String(filters.company_id ?? ''),
     );
+    const [buildingId, setBuildingId] = useState(
+        String(filters.building_id ?? ''),
+    );
+    const availableBuildings = buildings.filter(
+        (building) => !companyId || String(building.company_id) === companyId,
+    );
+    const selectFilters = [
+        {
+            name: 'biller_id',
+            label: 'Biller',
+            all: 'All billers',
+            value: billerId,
+            onChange: setBillerId,
+            options: billers.map((biller) => ({
+                value: String(biller.id),
+                label: biller.name,
+            })),
+        },
+        {
+            name: 'stage',
+            label: 'Stage',
+            all: 'All stages',
+            value: stage,
+            onChange: setStage,
+            options: stages,
+        },
+        {
+            name: 'company_id',
+            label: 'Company',
+            all: 'All companies',
+            value: companyId,
+            onChange: (value: string) => {
+                setCompanyId(value);
+                setBuildingId('');
+            },
+            options: companies.map((company) => ({
+                value: String(company.id),
+                label: company.name,
+            })),
+        },
+        {
+            name: 'building_id',
+            label: 'Building',
+            all: 'All buildings',
+            value: buildingId,
+            onChange: setBuildingId,
+            options: availableBuildings.map((building) => ({
+                value: String(building.id),
+                label: companyId
+                    ? building.name
+                    : `${building.company.name} / ${building.name}`,
+            })),
+        },
+    ];
     function submit(event: FormEvent) {
         event.preventDefault();
-        router.get(`/${resource}`, { search });
+        router.get(`/${resource}`, {
+            search,
+            biller_id: billerId,
+            stage,
+            company_id: companyId,
+            building_id: buildingId,
+        });
     }
     return (
         <Shell title={title}>
@@ -69,6 +164,40 @@ export default function Index({ columns, records }: Props) {
                 onSubmit={submit}
                 className="mb-6 flex flex-wrap items-end gap-3"
             >
+                {selectFilters.map((filter) => (
+                    <div key={filter.name} className="grid min-w-48 gap-2">
+                        <Label htmlFor={`${filter.name}-filter`}>
+                            {filter.label}
+                        </Label>
+                        <Select
+                            value={filter.value || 'all'}
+                            onValueChange={(value) =>
+                                filter.onChange(value === 'all' ? '' : value)
+                            }
+                        >
+                            <SelectTrigger
+                                id={`${filter.name}-filter`}
+                                className="w-full"
+                            >
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">
+                                    {filter.all}
+                                </SelectItem>
+                                {filter.options.map((option) => (
+                                    <SelectItem
+                                        key={option.value}
+                                        value={option.value}
+                                    >
+                                        {option.label}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        <InputError message={props.errors[filter.name]} />
+                    </div>
+                ))}
                 <div className="grid gap-2">
                     <Label htmlFor="search">Search by unit name</Label>
                     <Input
@@ -78,7 +207,7 @@ export default function Index({ columns, records }: Props) {
                         maxLength={255}
                     />
                 </div>
-                <Button variant="outline">Search</Button>
+                <Button variant="outline">Filter</Button>
                 <Button variant="ghost" asChild>
                     <Link href={`/${resource}`}>Clear</Link>
                 </Button>
@@ -94,7 +223,10 @@ export default function Index({ columns, records }: Props) {
                         <thead className="text-xs whitespace-nowrap">
                             <tr className="whitespace-nowrap">
                                 {Object.entries(columns).map(([key, label]) => (
-                                    <th key={key} className="px-5 py-4">
+                                    <th
+                                        key={key}
+                                        className={`px-5 py-4${key === 'amount' ? ' text-right' : ''}`}
+                                    >
                                         {label}
                                     </th>
                                 ))}
@@ -111,7 +243,7 @@ export default function Index({ columns, records }: Props) {
                                 {Object.keys(columns).map((key) => (
                                     <td
                                         key={key}
-                                        className={`px-5 py-4${key === 'amount' ? ' tabular-nums' : ''}`}
+                                        className={`px-5 py-4${key === 'amount' ? ' text-right tabular-nums' : ''}`}
                                     >
                                         {cell(record, key)}
                                     </td>
