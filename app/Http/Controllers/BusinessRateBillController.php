@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\BillingStage;
 use App\Http\Requests\BusinessRateBillRequest;
 use App\Models\Biller;
 use App\Models\BusinessRateBill;
@@ -22,7 +23,7 @@ class BusinessRateBillController extends Controller
 
         return Inertia::render('business-rate-bills/index', [
             'title' => 'Business Rate Bills', 'singular' => 'Business Rate Bill', 'resource' => 'business-rate-bills',
-            'columns' => ['reference_number' => 'Reference', 'biller.name' => 'Biller', 'unit.building.name' => 'Building', 'unit.name' => 'Unit', 'period_start' => 'Period start', 'period_end' => 'Period end', 'amount' => 'Amount'], 'records' => $records,
+            'columns' => ['case_number' => 'Case number', 'reference_number' => 'Reference', 'biller.name' => 'Biller', 'unit.building.name' => 'Building', 'unit.name' => 'Unit', 'period_start' => 'Period start', 'period_end' => 'Period end', 'amount' => 'Amount', 'stage' => 'Stage'], 'records' => $records,
         ]);
     }
 
@@ -57,7 +58,7 @@ class BusinessRateBillController extends Controller
         return to_route('business-rate-bills.index')->with('success', 'Business Rate Bill deleted.');
     }
 
-    /** @return array{title: string, singular: string, resource: string, record: BusinessRateBill, fields: list<array{name: string, label: string, type: string, required: bool, options?: array<int, string>}>} */
+    /** @return array{title: string, singular: string, resource: string, record: BusinessRateBill, fields: list<array{name: string, label: string, type: string, required: bool, options?: array<int|string, string>}>} */
     private function formData(BusinessRateBill $record): array
     {
         $units = Unit::with('building.company')->orderBy('name')->orderBy('id')->get()->mapWithKeys(fn (Unit $unit) => [$unit->id => $unit->building->company->name.' / '.$unit->building->name.' / '.$unit->name])->all();
@@ -65,12 +66,14 @@ class BusinessRateBillController extends Controller
         return [
             'title' => 'Business Rate Bills', 'singular' => 'Business Rate Bill', 'resource' => 'business-rate-bills', 'record' => $record,
             'fields' => [
+                ['name' => 'case_number', 'label' => 'Case number', 'type' => 'text', 'required' => false],
                 ['name' => 'unit_id', 'label' => 'Unit', 'type' => 'select', 'required' => true, 'options' => $units],
                 ['name' => 'biller_id', 'label' => 'Biller', 'type' => 'select', 'required' => true, 'options' => Biller::orderBy('name')->orderBy('id')->pluck('name', 'id')->all()],
                 ['name' => 'reference_number', 'label' => 'Reference number', 'type' => 'text', 'required' => false],
                 ['name' => 'period_start', 'label' => 'Period start', 'type' => 'date', 'required' => true],
                 ['name' => 'period_end', 'label' => 'Period end', 'type' => 'date', 'required' => true],
                 ['name' => 'amount', 'label' => 'Amount', 'type' => 'number', 'required' => true],
+                ['name' => 'stage', 'label' => 'Stage', 'type' => 'select', 'required' => false, 'options' => collect(BillingStage::cases())->mapWithKeys(fn (BillingStage $stage) => [$stage->value => $stage->name])->all()],
             ],
         ];
     }

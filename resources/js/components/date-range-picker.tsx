@@ -38,9 +38,9 @@ export function DateRangePicker({ id, start, end, onChange, invalid }: Props) {
                 >
                     <RiCalendarLine aria-hidden="true" />
                     {from
-                        ? `${format(from, 'MMM d, yyyy')} – ${to ? format(to, 'MMM d, yyyy') : 'Select end date'}`
+                        ? `${format(from, 'dd/MM/yyyy')} – ${to ? format(to, 'dd/MM/yyyy') : 'Select end date'}`
                         : to
-                          ? `Until ${format(to, 'MMM d, yyyy')}`
+                          ? `Until ${format(to, 'dd/MM/yyyy')}`
                           : 'Select date range'}
                 </Button>
             </PopoverTrigger>

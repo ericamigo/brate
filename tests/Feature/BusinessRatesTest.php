@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\BillingStage;
 use App\Models\Biller;
 use App\Models\Building;
 use App\Models\BusinessRateBill;
@@ -109,4 +110,18 @@ it('blocks deletion of parents with historical records', function () {
     }
     $this->assertModelExists($tenancy);
     $this->assertModelExists($bill);
+});
+
+it('manages bill case numbers and enum stages', function () {
+    $data = BusinessRateBill::factory()->raw();
+    $this->post('/business-rate-bills', $data + ['case_number' => 'CASE-123', 'stage' => 'enforcement'])->assertSessionHasNoErrors();
+    $bill = BusinessRateBill::latest('id')->firstOrFail();
+    expect($bill->case_number)->toBe('CASE-123')->and($bill->stage)->toBe(BillingStage::Enforcement);
+    $this->get('/business-rate-bills/create')->assertInertia(fn (Assert $page) => $page->where('fields.0.name', 'case_number')->where('record.stage', 'unverified'));
+    $this->get('/business-rate-bills/'.$bill->id.'/edit')->assertInertia(fn (Assert $page) => $page->where('record.stage', 'enforcement')->where('record.case_number', 'CASE-123'));
+    $this->put('/business-rate-bills/'.$bill->id, $data + ['case_number' => null, 'stage' => 'summon'])->assertSessionHasNoErrors();
+    expect($bill->fresh()->case_number)->toBeNull()->and($bill->fresh()->stage)->toBe(BillingStage::Summon);
+    $this->put('/business-rate-bills/'.$bill->id, $data + ['stage' => 'unknown'])->assertSessionHasErrors('stage');
+    $this->put('/business-rate-bills/'.$bill->id, $data + ['stage' => null])->assertSessionHasNoErrors();
+    expect($bill->fresh()->stage)->toBeNull();
 });

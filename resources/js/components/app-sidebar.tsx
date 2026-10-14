@@ -12,6 +12,7 @@ import {
     RiBankLine,
     RiBillLine,
     RiFileTextLine,
+    RiUploadLine,
 } from '@remixicon/react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
@@ -55,6 +56,7 @@ const mainNavItems: NavItem[] = [
         href: route('documents.index'),
         icon: RiFileTextLine,
     },
+    { title: 'Import', href: route('imports.index'), icon: RiUploadLine },
 ];
 
 const footerNavItems: NavItem[] = [
