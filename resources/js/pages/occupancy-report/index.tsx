@@ -98,7 +98,7 @@ export default function Report({
     ];
     return (
         <Shell title="Occupancy Report">
-            <div className="mb-7 flex flex-wrap items-center justify-between gap-4">
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-semibold tracking-tight">
                         Occupancy Report
@@ -114,79 +114,76 @@ export default function Report({
             </div>
             <form
                 onSubmit={submit}
-                className="mb-6 rounded-lg border bg-card p-5"
+                className="mb-6 flex flex-wrap items-end gap-3"
             >
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                    {selects.map(({ name, label, options }) => (
-                        <div key={name} className="grid gap-2">
-                            <Label htmlFor={name}>{label}</Label>
-                            <Select
-                                name={name}
-                                value={form.data[name] || 'all'}
-                                onValueChange={(value) =>
-                                    change(name, value === 'all' ? '' : value)
-                                }
-                            >
-                                <SelectTrigger
-                                    id={name}
-                                    className="w-full"
-                                    aria-invalid={Boolean(errors[name])}
-                                >
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all">
-                                        All {label.toLowerCase()}s
-                                    </SelectItem>
-                                    {options.map((option) => (
-                                        <SelectItem
-                                            key={option.id}
-                                            value={String(option.id)}
-                                        >
-                                            {option.company?.name ??
-                                                option.building?.name}
-                                            {(option.company ||
-                                                option.building) &&
-                                                ' / '}
-                                            {option.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <InputError message={errors[name]} />
-                        </div>
-                    ))}
-                    <div className="grid gap-2">
-                        <Label htmlFor="billing-period">Billing period</Label>
-                        <DateRangePicker
-                            id="billing-period"
-                            start={form.data.period_start}
-                            end={form.data.period_end}
-                            onChange={(start, end) =>
-                                form.setData((data) => ({
-                                    ...data,
-                                    period_start: start,
-                                    period_end: end,
-                                }))
+                {selects.map(({ name, label, options }) => (
+                    <div key={name} className="grid min-w-48 gap-2">
+                        <Label htmlFor={name}>{label}</Label>
+                        <Select
+                            name={name}
+                            value={form.data[name] || 'all'}
+                            onValueChange={(value) =>
+                                change(name, value === 'all' ? '' : value)
                             }
-                            invalid={Boolean(
-                                errors.period_start || errors.period_end,
-                            )}
-                        />
-                        <InputError message={errors.period_start} />
-                        <InputError message={errors.period_end} />
+                        >
+                            <SelectTrigger
+                                id={name}
+                                className="w-full"
+                                aria-invalid={Boolean(errors[name])}
+                            >
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">
+                                    {name === 'company_id'
+                                        ? 'All companies'
+                                        : `All ${label.toLowerCase()}s`}
+                                </SelectItem>
+                                {options.map((option) => (
+                                    <SelectItem
+                                        key={option.id}
+                                        value={String(option.id)}
+                                    >
+                                        {option.company?.name ??
+                                            option.building?.name}
+                                        {(option.company || option.building) &&
+                                            ' / '}
+                                        {option.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        <InputError message={errors[name]} />
                     </div>
+                ))}
+                <div className="grid min-w-48 gap-2">
+                    <Label htmlFor="billing-period">Billing period</Label>
+                    <DateRangePicker
+                        id="billing-period"
+                        start={form.data.period_start}
+                        end={form.data.period_end}
+                        onChange={(start, end) =>
+                            form.setData((data) => ({
+                                ...data,
+                                period_start: start,
+                                period_end: end,
+                            }))
+                        }
+                        invalid={Boolean(
+                            errors.period_start || errors.period_end,
+                        )}
+                    />
+                    <InputError message={errors.period_start} />
+                    <InputError message={errors.period_end} />
                 </div>
-                <div className="mt-5 flex flex-wrap items-center gap-4">
-                    <Button>Apply Filters</Button>
-                    <Button variant="outline" asChild>
-                        <Link href="/">Reset</Link>
-                    </Button>
-                    <p className="text-xs text-muted-foreground">
-                        Shows bills overlapping the selected date range.
-                    </p>
-                </div>
+                <Button variant="outline">Filter</Button>
+                <Button variant="ghost" asChild>
+                    <Link href="/">Clear</Link>
+                </Button>
             </form>
+            <p className="mb-4 text-xs text-muted-foreground">
+                Shows bills overlapping the selected date range.
+            </p>
             <p className="mb-4 text-sm text-muted-foreground">
                 {bills.total} matching bills · {rows.length} occupancy rows on
                 this page · Inclusive dates
