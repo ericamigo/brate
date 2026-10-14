@@ -20,7 +20,7 @@ class BusinessRateBillController extends Controller
             ->when($filters['search'] ?? null, fn ($query, $search) => $query->whereHas('unit', fn ($query) => $query->where('name', 'like', '%'.$search.'%')))
             ->orderByDesc('id')->paginate(15)->withQueryString();
 
-        return Inertia::render('business-rates/index', [
+        return Inertia::render('business-rate-bills/index', [
             'title' => 'Business Rate Bills', 'singular' => 'Business Rate Bill', 'resource' => 'business-rate-bills',
             'columns' => ['reference_number' => 'Reference', 'biller.name' => 'Biller', 'unit.building.name' => 'Building', 'unit.name' => 'Unit', 'period_start' => 'Period start', 'period_end' => 'Period end', 'amount' => 'Amount'], 'records' => $records,
         ]);
@@ -28,7 +28,7 @@ class BusinessRateBillController extends Controller
 
     public function create(): Response
     {
-        return Inertia::render('business-rates/form', $this->formData(new BusinessRateBill));
+        return Inertia::render('business-rate-bills/create', $this->formData(new BusinessRateBill));
     }
 
     public function store(BusinessRateBillRequest $request): RedirectResponse
@@ -40,7 +40,7 @@ class BusinessRateBillController extends Controller
 
     public function edit(BusinessRateBill $businessRateBill): Response
     {
-        return Inertia::render('business-rates/form', $this->formData($businessRateBill));
+        return Inertia::render('business-rate-bills/edit', $this->formData($businessRateBill));
     }
 
     public function update(BusinessRateBillRequest $request, BusinessRateBill $businessRateBill): RedirectResponse

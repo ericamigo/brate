@@ -4,14 +4,17 @@ import type { FormEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Pages, Shell, date } from './shared';
-import type { Pagination } from './shared';
+import { Pages } from '@/components/pagination';
+import type { Pagination } from '@/components/pagination';
+import { Shell } from '@/components/page-shell';
+import { date } from '@/lib/date';
 
 type RecordRow = { id: number; [key: string]: unknown };
+const title = 'Companies';
+const singular = 'Company';
+const resource = 'companies';
+
 type Props = {
-    title: string;
-    singular: string;
-    resource: string;
     columns: Record<string, string>;
     records: Pagination & { data: RecordRow[] };
 };
@@ -31,13 +34,7 @@ function cell(record: RecordRow, key: string): string {
           ? String(value)
           : '—';
 }
-export default function Index({
-    title,
-    singular,
-    resource,
-    columns,
-    records,
-}: Props) {
+export default function Index({ columns, records }: Props) {
     const { url, props } = usePage<{ errors: Record<string, string> }>();
     const [search, setSearch] = useState(
         new URLSearchParams(url.split('?')[1] ?? '').get('search') ?? '',
@@ -50,7 +47,9 @@ export default function Index({
         <Shell title={title}>
             <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-semibold">{title}</h1>
+                    <h1 className="text-2xl font-semibold tracking-tight">
+                        {title}
+                    </h1>
                     <p className="mt-1 text-sm text-muted-foreground">
                         {records.total} records
                     </p>
@@ -59,24 +58,12 @@ export default function Index({
                     <Link href={`/${resource}/create`}>Add {singular}</Link>
                 </Button>
             </div>
-            {resource === 'tenancies' && (
-                <p className="mb-6 rounded-lg border bg-muted p-4 text-sm">
-                    When occupants change, close the previous tenancy and create
-                    a new record. Move-out is the last day of occupancy; leave
-                    it blank for ongoing occupancy.
-                </p>
-            )}
             <form
                 onSubmit={submit}
                 className="mb-6 flex flex-wrap items-end gap-3"
             >
                 <div className="grid gap-2">
-                    <Label htmlFor="search">
-                        {resource === 'tenancies' ||
-                        resource === 'business-rate-bills'
-                            ? 'Search by unit name'
-                            : 'Search by name'}
-                    </Label>
+                    <Label htmlFor="search">Search by name</Label>
                     <Input
                         id="search"
                         value={search}

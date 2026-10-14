@@ -18,7 +18,7 @@ class TenantController extends Controller
             ->when($filters['search'] ?? null, fn ($query, $search) => $query->where('name', 'like', '%'.$search.'%'))
             ->orderByDesc('id')->paginate(15)->withQueryString();
 
-        return Inertia::render('business-rates/index', [
+        return Inertia::render('tenants/index', [
             'title' => 'Tenants', 'singular' => 'Tenant', 'resource' => 'tenants',
             'columns' => ['name' => 'Name'], 'records' => $records,
         ]);
@@ -26,7 +26,7 @@ class TenantController extends Controller
 
     public function create(): Response
     {
-        return Inertia::render('business-rates/form', $this->formData(new Tenant));
+        return Inertia::render('tenants/create', $this->formData(new Tenant));
     }
 
     public function store(TenantRequest $request): RedirectResponse
@@ -38,7 +38,7 @@ class TenantController extends Controller
 
     public function edit(Tenant $tenant): Response
     {
-        return Inertia::render('business-rates/form', $this->formData($tenant));
+        return Inertia::render('tenants/edit', $this->formData($tenant));
     }
 
     public function update(TenantRequest $request, Tenant $tenant): RedirectResponse

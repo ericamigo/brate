@@ -33,7 +33,7 @@ class OccupancyReportController extends Controller
             $bills->getCollection()->load(['biller', 'unit.building.company', 'unit.tenancies' => fn ($query) => $this->occupants($query, $start, $end)]);
         }
 
-        return Inertia::render('business-rates/report', [
+        return Inertia::render('occupancy-report/index', [
             'bills' => $bills,
             'rows' => $bills->getCollection()->flatMap(fn (BusinessRateBill $bill) => $bill->occupancyRows()->map(fn (array $row) => [
                 'bill_id' => $bill->id,

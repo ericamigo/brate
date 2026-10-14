@@ -19,7 +19,7 @@ class BuildingController extends Controller
             ->when($filters['search'] ?? null, fn ($query, $search) => $query->where('name', 'like', '%'.$search.'%'))
             ->orderByDesc('id')->paginate(15)->withQueryString();
 
-        return Inertia::render('business-rates/index', [
+        return Inertia::render('buildings/index', [
             'title' => 'Buildings', 'singular' => 'Building', 'resource' => 'buildings',
             'columns' => ['name' => 'Name', 'company.name' => 'Company', 'address' => 'Address'], 'records' => $records,
         ]);
@@ -27,7 +27,7 @@ class BuildingController extends Controller
 
     public function create(): Response
     {
-        return Inertia::render('business-rates/form', $this->formData(new Building));
+        return Inertia::render('buildings/create', $this->formData(new Building));
     }
 
     public function store(BuildingRequest $request): RedirectResponse
@@ -39,7 +39,7 @@ class BuildingController extends Controller
 
     public function edit(Building $building): Response
     {
-        return Inertia::render('business-rates/form', $this->formData($building));
+        return Inertia::render('buildings/edit', $this->formData($building));
     }
 
     public function update(BuildingRequest $request, Building $building): RedirectResponse

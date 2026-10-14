@@ -12,12 +12,12 @@ use Inertia\Testing\AssertableInertia as Assert;
 
 it('manages business rates resources without login', function (string $resource, string $model, string $field, string $value) {
     $data = $model::factory()->raw();
-    $this->get('/'.$resource)->assertOk()->assertInertia(fn (Assert $page) => $page->component('business-rates/index'));
-    $this->get('/'.$resource.'/create')->assertOk()->assertInertia(fn (Assert $page) => $page->component('business-rates/form'));
+    $this->get('/'.$resource)->assertOk()->assertInertia(fn (Assert $page) => $page->component($resource.'/index'));
+    $this->get('/'.$resource.'/create')->assertOk()->assertInertia(fn (Assert $page) => $page->component($resource.'/create'));
     $this->post('/'.$resource, $data)->assertRedirect('/'.$resource)->assertSessionHasNoErrors();
     $saved = $model::latest('id')->firstOrFail();
     $this->assertModelExists($saved);
-    $this->get('/'.$resource.'/'.$saved->id.'/edit')->assertOk();
+    $this->get('/'.$resource.'/'.$saved->id.'/edit')->assertOk()->assertInertia(fn (Assert $page) => $page->component($resource.'/edit'));
     $this->put('/'.$resource.'/'.$saved->id, array_replace($data, [$field => $value]))->assertRedirect('/'.$resource)->assertSessionHasNoErrors();
     $actual = $saved->fresh()->getAttribute($field);
     expect($actual instanceof CarbonInterface ? $actual->toDateString() : $actual)->toBe($value);
@@ -42,7 +42,7 @@ it('matches historical occupants and displays vacant bills', function () {
     BusinessRateBill::factory()->create(['period_start' => '2025-01-01', 'period_end' => '2025-03-31']);
 
     $this->get('/')->assertOk()->assertInertia(fn (Assert $page) => $page
-        ->component('business-rates/report')->has('rows', 3)
+        ->component('occupancy-report/index')->has('rows', 3)
         ->where('rows.0.tenancy_id', $a->id)->where('rows.0.occupied_start', '2026-01-01')->where('rows.0.occupied_end', '2026-02-28')
         ->where('rows.1.tenancy_id', $b->id)->where('rows.1.occupied_start', '2026-03-01')->where('rows.1.occupied_end', '2026-03-31')
         ->where('rows.2.occupant', null));

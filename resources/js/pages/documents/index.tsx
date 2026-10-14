@@ -1,4 +1,4 @@
-import { useForm } from '@inertiajs/react';
+import { Head, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import { Button } from '@/components/ui/button';
@@ -13,8 +13,9 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Pages, Shell, date } from '../business-rates/shared';
-import type { Pagination } from '../business-rates/shared';
+import { Pages } from '@/components/pagination';
+import { date } from '@/lib/date';
+import type { Pagination } from '@/components/pagination';
 
 type Document = {
     id: number;
@@ -29,6 +30,9 @@ export default function Index({
     documents: Pagination & { data: Document[] };
 }) {
     const [open, setOpen] = useState(false);
+    const { flash } = usePage<{
+        flash?: { success?: string; error?: string };
+    }>().props;
     const form = useForm<{ file: File | null }>({ file: null });
 
     function changeOpen(value: boolean) {
@@ -51,130 +55,164 @@ export default function Index({
     }
 
     return (
-        <Shell title="Documents">
-            <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-2xl font-semibold">Documents</h1>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                        {documents.total} documents
-                    </p>
-                </div>
-                <Dialog open={open} onOpenChange={changeOpen}>
-                    <DialogTrigger asChild>
-                        <Button>Upload document</Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>Upload document</DialogTitle>
-                            <DialogDescription>
-                                Choose a file to upload. Maximum size: 20 MB.
-                            </DialogDescription>
-                        </DialogHeader>
-                        <form onSubmit={upload} className="grid gap-4">
-                            <div className="grid gap-2">
-                                <Label htmlFor="document-file">File</Label>
-                                <Input
-                                    id="document-file"
-                                    type="file"
-                                    required
-                                    disabled={form.processing}
-                                    onChange={(event) =>
-                                        form.setData(
-                                            'file',
-                                            event.target.files?.[0] ?? null,
-                                        )
-                                    }
-                                    aria-invalid={!!form.errors.file}
-                                    aria-describedby={
-                                        form.errors.file
-                                            ? 'document-file-error'
-                                            : undefined
-                                    }
-                                />
-                                {form.errors.file && (
-                                    <p
-                                        id="document-file-error"
-                                        role="alert"
-                                        className="text-sm text-destructive"
-                                    >
-                                        {form.errors.file}
-                                    </p>
-                                )}
-                            </div>
-                            {form.progress && (
-                                <progress
-                                    value={form.progress.percentage}
-                                    max={100}
-                                    aria-label="Upload progress"
-                                    className="w-full"
-                                />
-                            )}
-                            <DialogFooter>
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    disabled={form.processing}
-                                    onClick={() => changeOpen(false)}
-                                >
-                                    Cancel
-                                </Button>
-                                <Button
-                                    type="submit"
-                                    disabled={
-                                        form.processing || !form.data.file
-                                    }
-                                >
-                                    {form.processing ? 'Uploading…' : 'Upload'}
-                                </Button>
-                            </DialogFooter>
-                        </form>
-                    </DialogContent>
-                </Dialog>
-            </div>
-            <div className="overflow-x-auto rounded-lg border">
-                <table className="w-full text-left text-sm">
-                    <thead className="bg-muted">
-                        <tr>
-                            <th className="px-5 py-4">Filename</th>
-                            <th className="px-5 py-4">Uploaded</th>
-                            <th className="px-5 py-4 text-right">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {documents.data.map((document) => (
-                            <tr key={document.id} className="border-t">
-                                <td className="px-5 py-4 break-all">
-                                    {document.filename}
-                                </td>
-                                <td className="px-5 py-4">
-                                    {date(document.created_at)}
-                                </td>
-                                <td className="px-5 py-4 text-right">
-                                    <Button variant="outline" size="sm" asChild>
-                                        <a
-                                            href={`/documents/${document.id}`}
-                                            aria-label={`Download ${document.filename}`}
+        <>
+            <Head title="Documents" />
+            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
+                {flash?.success && (
+                    <div
+                        role="status"
+                        className="rounded-lg border bg-card p-4"
+                    >
+                        {flash.success}
+                    </div>
+                )}
+                {flash?.error && (
+                    <div
+                        role="alert"
+                        className="rounded-lg border border-destructive p-4 text-destructive"
+                    >
+                        {flash.error}
+                    </div>
+                )}
+                <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+                    <div>
+                        <h1 className="text-2xl font-semibold tracking-tight">
+                            Documents
+                        </h1>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                            {documents.total} documents
+                        </p>
+                    </div>
+                    <Dialog open={open} onOpenChange={changeOpen}>
+                        <DialogTrigger asChild>
+                            <Button>Upload document</Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>Upload document</DialogTitle>
+                                <DialogDescription>
+                                    Choose a file to upload. Maximum size: 20
+                                    MB.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <form onSubmit={upload} className="grid gap-4">
+                                <div className="grid gap-2">
+                                    <Label htmlFor="document-file">File</Label>
+                                    <Input
+                                        id="document-file"
+                                        type="file"
+                                        required
+                                        disabled={form.processing}
+                                        onChange={(event) =>
+                                            form.setData(
+                                                'file',
+                                                event.target.files?.[0] ?? null,
+                                            )
+                                        }
+                                        aria-invalid={!!form.errors.file}
+                                        aria-describedby={
+                                            form.errors.file
+                                                ? 'document-file-error'
+                                                : undefined
+                                        }
+                                    />
+                                    {form.errors.file && (
+                                        <p
+                                            id="document-file-error"
+                                            role="alert"
+                                            className="text-sm text-destructive"
                                         >
-                                            Download
-                                        </a>
+                                            {form.errors.file}
+                                        </p>
+                                    )}
+                                </div>
+                                {form.progress && (
+                                    <progress
+                                        value={form.progress.percentage}
+                                        max={100}
+                                        aria-label="Upload progress"
+                                        className="w-full"
+                                    />
+                                )}
+                                <DialogFooter>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        disabled={form.processing}
+                                        onClick={() => changeOpen(false)}
+                                    >
+                                        Cancel
                                     </Button>
-                                </td>
-                            </tr>
-                        ))}
-                        {!documents.data.length && (
+                                    <Button
+                                        type="submit"
+                                        disabled={
+                                            form.processing || !form.data.file
+                                        }
+                                    >
+                                        {form.processing
+                                            ? 'Uploading…'
+                                            : 'Upload'}
+                                    </Button>
+                                </DialogFooter>
+                            </form>
+                        </DialogContent>
+                    </Dialog>
+                </div>
+                <div className="overflow-x-auto rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
+                    <table className="w-full text-left text-sm">
+                        <thead className="bg-muted">
                             <tr>
-                                <td
-                                    colSpan={3}
-                                    className="p-12 text-center text-muted-foreground"
-                                >
-                                    No documents uploaded yet.
-                                </td>
+                                <th className="px-5 py-4">Filename</th>
+                                <th className="px-5 py-4">Uploaded</th>
+                                <th className="px-5 py-4 text-right">
+                                    Actions
+                                </th>
                             </tr>
-                        )}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            {documents.data.map((document) => (
+                                <tr key={document.id} className="border-t">
+                                    <td className="px-5 py-4 break-all">
+                                        {document.filename}
+                                    </td>
+                                    <td className="px-5 py-4">
+                                        {date(document.created_at)}
+                                    </td>
+                                    <td className="px-5 py-4 text-right">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            asChild
+                                        >
+                                            <a
+                                                href={`/documents/${document.id}`}
+                                                aria-label={`Download ${document.filename}`}
+                                            >
+                                                Download
+                                            </a>
+                                        </Button>
+                                    </td>
+                                </tr>
+                            ))}
+                            {!documents.data.length && (
+                                <tr>
+                                    <td
+                                        colSpan={3}
+                                        className="p-12 text-center text-muted-foreground"
+                                    >
+                                        No documents uploaded yet.
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+                <Pages pagination={documents} />
             </div>
-            <Pages pagination={documents} />
-        </Shell>
+        </>
     );
 }
+
+Index.layout = {
+    breadcrumbs: [{ title: 'Documents', href: '/documents' }],
+};

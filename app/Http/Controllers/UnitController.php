@@ -19,7 +19,7 @@ class UnitController extends Controller
             ->when($filters['search'] ?? null, fn ($query, $search) => $query->where('name', 'like', '%'.$search.'%'))
             ->orderByDesc('id')->paginate(15)->withQueryString();
 
-        return Inertia::render('business-rates/index', [
+        return Inertia::render('units/index', [
             'title' => 'Units', 'singular' => 'Unit', 'resource' => 'units',
             'columns' => ['name' => 'Name', 'building.name' => 'Building', 'building.company.name' => 'Company'], 'records' => $records,
         ]);
@@ -27,7 +27,7 @@ class UnitController extends Controller
 
     public function create(): Response
     {
-        return Inertia::render('business-rates/form', $this->formData(new Unit));
+        return Inertia::render('units/create', $this->formData(new Unit));
     }
 
     public function store(UnitRequest $request): RedirectResponse
@@ -39,7 +39,7 @@ class UnitController extends Controller
 
     public function edit(Unit $unit): Response
     {
-        return Inertia::render('business-rates/form', $this->formData($unit));
+        return Inertia::render('units/edit', $this->formData($unit));
     }
 
     public function update(UnitRequest $request, Unit $unit): RedirectResponse

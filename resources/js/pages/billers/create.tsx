@@ -12,7 +12,9 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Shell, controlClass } from './shared';
+import { Shell } from '@/components/page-shell';
+const controlClass =
+    'w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring';
 
 type Field = {
     name: string;
@@ -21,20 +23,15 @@ type Field = {
     required: boolean;
     options?: Record<string, string>;
 };
+const title = 'Billers';
+const singular = 'Biller';
+const resource = 'billers';
+
 type Props = {
-    title: string;
-    singular: string;
-    resource: string;
     record: { id?: number; [key: string]: unknown };
     fields: Field[];
 };
-export default function ManagementForm({
-    title,
-    singular,
-    resource,
-    record,
-    fields,
-}: Props) {
+export default function Create({ record, fields }: Props) {
     const form = useForm<Record<string, string>>(
         Object.fromEntries(
             fields.map((field) => {
@@ -49,19 +46,18 @@ export default function ManagementForm({
     );
     function submit(event: FormEvent) {
         event.preventDefault();
-        if (record.id) form.put(`/${resource}/${record.id}`);
-        else form.post(`/${resource}`);
+        form.post(`/${resource}`);
     }
     return (
-        <Shell title={`${record.id ? 'Edit' : 'Add'} ${singular}`}>
+        <Shell title={`${'Add'} ${singular}`}>
             <Link
                 href={`/${resource}`}
                 className="text-sm text-muted-foreground"
             >
                 ← {title}
             </Link>
-            <h1 className="my-6 text-2xl font-semibold">
-                {record.id ? 'Edit' : 'Add'} {singular}
+            <h1 className="my-6 text-2xl font-semibold tracking-tight">
+                {'Add'} {singular}
             </h1>
             <form
                 onSubmit={submit}
@@ -185,12 +181,6 @@ export default function ManagementForm({
                             </div>
                         ),
                     )}
-                {resource === 'tenancies' && (
-                    <p className="text-sm text-muted-foreground">
-                        Move-out is the last day of occupancy. For a new
-                        occupant, create a separate tenancy to preserve history.
-                    </p>
-                )}
                 <div className="mt-3 flex gap-3">
                     <Button disabled={form.processing}>Save {singular}</Button>
                     <Button variant="outline" asChild>

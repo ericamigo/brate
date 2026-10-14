@@ -18,15 +18,15 @@ class BillerController extends Controller
             ->when($filters['search'] ?? null, fn ($query, $search) => $query->where('name', 'like', '%'.$search.'%'))
             ->orderByDesc('id')->paginate(15)->withQueryString();
 
-        return Inertia::render('business-rates/index', [
-            'title' => 'Companies', 'singular' => 'Biller', 'resource' => 'billers',
+        return Inertia::render('billers/index', [
+            'title' => 'Billers', 'singular' => 'Biller', 'resource' => 'billers',
             'columns' => ['name' => 'Name'], 'records' => $records,
         ]);
     }
 
     public function create(): Response
     {
-        return Inertia::render('business-rates/form', $this->formData(new Biller));
+        return Inertia::render('billers/create', $this->formData(new Biller));
     }
 
     public function store(BillerRequest $request): RedirectResponse
@@ -38,7 +38,7 @@ class BillerController extends Controller
 
     public function edit(Biller $biller): Response
     {
-        return Inertia::render('business-rates/form', $this->formData($biller));
+        return Inertia::render('billers/edit', $this->formData($biller));
     }
 
     public function update(BillerRequest $request, Biller $biller): RedirectResponse
@@ -64,7 +64,7 @@ class BillerController extends Controller
     {
 
         return [
-            'title' => 'Companies', 'singular' => 'Biller', 'resource' => 'billers', 'record' => $record,
+            'title' => 'Billers', 'singular' => 'Biller', 'resource' => 'billers', 'record' => $record,
             'fields' => [
                 ['name' => 'name', 'label' => 'Name', 'type' => 'text', 'required' => true],
             ],
