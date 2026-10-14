@@ -1,20 +1,20 @@
-import { Link, router, useForm, usePage } from "@inertiajs/react";
-import type { FormEvent } from "react";
-import { DateRangePicker } from "@/components/date-range-picker";
-import InputError from "@/components/input-error";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
+import { Link, router, useForm, usePage } from '@inertiajs/react';
+import type { FormEvent } from 'react';
+import { DateRangePicker } from '@/components/date-range-picker';
+import InputError from '@/components/input-error';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@/components/ui/select";
-import { Pages } from "@/components/pagination";
-import { Shell } from "@/components/page-shell";
-import { date } from "@/lib/date";
-import type { Pagination } from "@/components/pagination";
+} from '@/components/ui/select';
+import { Pages } from '@/components/pagination';
+import { Shell } from '@/components/page-shell';
+import { date } from '@/lib/date';
+import type { Pagination } from '@/components/pagination';
 
 type Property = {
     id: number;
@@ -24,6 +24,7 @@ type Property = {
 };
 type Row = {
     bill_id: number;
+    case_number: string | null;
     reference_number: string | null;
     biller: string;
     company: string;
@@ -62,38 +63,38 @@ export default function Report({
     units,
 }: Props) {
     const form = useForm<Filters>({
-        company_id: String(filters.company_id ?? ""),
-        building_id: String(filters.building_id ?? ""),
-        unit_id: String(filters.unit_id ?? ""),
-        period_start: filters.period_start ?? "",
-        period_end: filters.period_end ?? "",
+        company_id: String(filters.company_id ?? ''),
+        building_id: String(filters.building_id ?? ''),
+        unit_id: String(filters.unit_id ?? ''),
+        period_start: filters.period_start ?? '',
+        period_end: filters.period_end ?? '',
     });
     const { errors } = usePage<{ errors: Record<string, string> }>().props;
     function submit(event: FormEvent) {
         event.preventDefault();
-        router.get("/", form.data);
+        router.get('/', form.data);
     }
     function change(
-        key: "company_id" | "building_id" | "unit_id",
+        key: 'company_id' | 'building_id' | 'unit_id',
         value: string,
     ) {
         const next = { ...form.data, [key]: value };
-        if (key === "company_id") {
-            next.building_id = "";
-            next.unit_id = "";
+        if (key === 'company_id') {
+            next.building_id = '';
+            next.unit_id = '';
         }
-        if (key === "building_id") next.unit_id = "";
+        if (key === 'building_id') next.unit_id = '';
         form.setData(next);
-        if (key !== "unit_id") router.get("/", next, { preserveState: true });
+        if (key !== 'unit_id') router.get('/', next, { preserveState: true });
     }
     const selects: {
-        name: "company_id" | "building_id" | "unit_id";
+        name: 'company_id' | 'building_id' | 'unit_id';
         label: string;
         options: Property[];
     }[] = [
-        { name: "company_id", label: "Company", options: companies },
-        { name: "building_id", label: "Building", options: buildings },
-        { name: "unit_id", label: "Unit", options: units },
+        { name: 'company_id', label: 'Company', options: companies },
+        { name: 'building_id', label: 'Building', options: buildings },
+        { name: 'unit_id', label: 'Unit', options: units },
     ];
     return (
         <Shell title="Occupancy Report">
@@ -121,9 +122,9 @@ export default function Report({
                             <Label htmlFor={name}>{label}</Label>
                             <Select
                                 name={name}
-                                value={form.data[name] || "all"}
+                                value={form.data[name] || 'all'}
                                 onValueChange={(value) =>
-                                    change(name, value === "all" ? "" : value)
+                                    change(name, value === 'all' ? '' : value)
                                 }
                             >
                                 <SelectTrigger
@@ -146,7 +147,7 @@ export default function Report({
                                                 option.building?.name}
                                             {(option.company ||
                                                 option.building) &&
-                                                " / "}
+                                                ' / '}
                                             {option.name}
                                         </SelectItem>
                                     ))}
@@ -193,16 +194,18 @@ export default function Report({
             <div className="overflow-x-auto rounded-lg border">
                 <table className="w-full text-left text-sm">
                     <thead className="bg-muted">
-                        <tr>
+                        <tr className="whitespace-nowrap">
                             {[
-                                "Building",
-                                "Unit",
-                                "Biller",
-                                "Period Covered",
-                                "Occupant",
-                                "Move-in Date",
-                                "Move-out Date",
-                                "Occupied Period",
+                                'Company',
+                                'Building',
+                                'Unit',
+                                'Biller',
+                                'Case No.',
+                                'Period Covered',
+                                'Occupant',
+                                'Move-in Date',
+                                'Move-out Date',
+                                'Occupied Period',
                             ].map((label) => (
                                 <th
                                     key={label}
@@ -216,30 +219,27 @@ export default function Report({
                     <tbody>
                         {rows.map((row) => (
                             <tr
-                                key={`${row.bill_id}-${row.tenancy_id ?? "vacant"}`}
-                                className="border-t"
+                                key={`${row.bill_id}-${row.tenancy_id ?? 'vacant'}`}
+                                className="border-t whitespace-nowrap"
                             >
-                                <td className="px-5 py-4">
-                                    {row.building}
-                                    <p className="mt-1 text-xs text-muted-foreground">
-                                        {row.company}
-                                    </p>
-                                </td>
+                                <td className="px-5 py-4">{row.company}</td>
+                                <td className="px-5 py-4">{row.building}</td>
                                 <td className="px-5 py-4">{row.unit}</td>
                                 <td className="px-5 py-4">{row.biller}</td>
-                                <td className="px-5 py-4 whitespace-nowrap">
-                                    {date(row.period_start)} –{" "}
-                                    {date(row.period_end)}
+                                <td className="px-5 py-4">
                                     <Link
                                         href={`/business-rate-bills/${row.bill_id}/edit`}
-                                        className="mt-1 block text-xs underline"
+                                        className="underline"
                                     >
-                                        {row.reference_number ??
-                                            `Bill #${row.bill_id}`}
+                                        {row.case_number ?? '—'}
                                     </Link>
                                 </td>
+                                <td className="px-5 py-4 whitespace-nowrap">
+                                    {date(row.period_start)} –{' '}
+                                    {date(row.period_end)}
+                                </td>
                                 <td className="px-5 py-4">
-                                    {row.occupant ?? "Vacant"}
+                                    {row.occupant ?? 'Vacant'}
                                 </td>
                                 <td className="px-5 py-4 whitespace-nowrap">
                                     {date(row.move_in_date)}
@@ -250,14 +250,14 @@ export default function Report({
                                 <td className="px-5 py-4 whitespace-nowrap">
                                     {row.occupied_start
                                         ? `${date(row.occupied_start)} – ${date(row.occupied_end)}`
-                                        : "—"}
+                                        : '—'}
                                 </td>
                             </tr>
                         ))}
                         {!rows.length && (
-                            <tr>
+                            <tr className="whitespace-nowrap">
                                 <td
-                                    colSpan={8}
+                                    colSpan={10}
                                     className="p-12 text-center text-muted-foreground"
                                 >
                                     No bills found. Adjust the filters or add a

@@ -44,7 +44,7 @@
             <title>{{ config('app.name', 'Brate') }}</title>
         </x-inertia::head>
     </head>
-    <body class="font-sans antialiased">
+    <body class="font-sans antialiased selection:bg-neutral-900 selection:text-white dark:selection:bg-white dark:selection:text-neutral-900">
         <x-inertia::app />
     </body>
 </html>

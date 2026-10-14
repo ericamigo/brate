@@ -37,6 +37,7 @@ class OccupancyReportController extends Controller
             'bills' => $bills,
             'rows' => $bills->getCollection()->flatMap(fn (BusinessRateBill $bill) => $bill->occupancyRows()->map(fn (array $row) => [
                 'bill_id' => $bill->id,
+                'case_number' => $bill->case_number,
                 'reference_number' => $bill->reference_number,
                 'biller' => $bill->biller->name,
                 'building' => $bill->unit->building->name,

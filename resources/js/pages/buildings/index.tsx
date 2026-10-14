@@ -84,7 +84,7 @@ export default function Index({ columns, records }: Props) {
             <div className="overflow-x-auto rounded-lg border">
                 <table className="w-full text-left text-sm">
                     <thead className="bg-muted">
-                        <tr>
+                        <tr className="whitespace-nowrap">
                             {Object.entries(columns).map(([key, label]) => (
                                 <th key={key} className="px-5 py-4">
                                     {label}
@@ -95,14 +95,14 @@ export default function Index({ columns, records }: Props) {
                     </thead>
                     <tbody>
                         {records.data.map((record) => (
-                            <tr key={record.id} className="border-t">
+                            <tr key={record.id} className="border-t whitespace-nowrap">
                                 {Object.keys(columns).map((key) => (
-                                    <td key={key} className="px-5 py-4">
+                                    <td key={key} className={`px-5 py-4${key === 'name' ? ' font-bold' : ''}`}>
                                         {cell(record, key)}
                                     </td>
                                 ))}
                                 <td className="px-5 py-4">
-                                    <div className="flex justify-end gap-2">
+                                    <div className="-my-2 flex justify-end gap-2">
                                         <Button
                                             variant="outline"
                                             size="sm"
@@ -136,7 +136,7 @@ export default function Index({ columns, records }: Props) {
                             </tr>
                         ))}
                         {!records.data.length && (
-                            <tr>
+                            <tr className="whitespace-nowrap">
                                 <td
                                     colSpan={Object.keys(columns).length + 1}
                                     className="p-12 text-center text-muted-foreground"

@@ -125,3 +125,16 @@ it('manages bill case numbers and enum stages', function () {
     $this->put('/business-rate-bills/'.$bill->id, $data + ['stage' => null])->assertSessionHasNoErrors();
     expect($bill->fresh()->stage)->toBeNull();
 });
+
+it('filters units by company, building and name', function () {
+    $a = Unit::factory()->create(['name' => 'Matching unit']);
+    $b = Unit::factory()->for($a->building)->create(['name' => 'Other unit']);
+    $otherBuilding = Building::factory()->create(['company_id' => $a->building->company_id]);
+    Unit::factory()->for($otherBuilding)->create();
+    Unit::factory()->create();
+    $this->get('/units?company_id='.$a->building->company_id)->assertInertia(fn (Assert $page) => $page->where('records.total', 3));
+    $this->get('/units?building_id='.$a->building_id)->assertInertia(fn (Assert $page) => $page->where('records.total', 2));
+    $this->get('/units?'.http_build_query(['company_id' => $a->building->company_id, 'building_id' => $a->building_id, 'search' => 'Matching']))
+        ->assertInertia(fn (Assert $page) => $page->where('records.total', 1)->where('records.data.0.id', $a->id));
+    $this->get('/units?company_id=999999&building_id=999999')->assertSessionHasErrors(['company_id', 'building_id']);
+});

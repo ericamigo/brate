@@ -22,7 +22,7 @@ class TenancyController extends Controller
 
         return Inertia::render('tenancies/index', [
             'title' => 'Tenancies', 'singular' => 'Tenancy', 'resource' => 'tenancies',
-            'columns' => ['unit.building.name' => 'Building', 'unit.name' => 'Unit', 'tenant.name' => 'Tenant', 'move_in_date' => 'Move-in date', 'move_out_date' => 'Move-out date'], 'records' => $records,
+            'columns' => ['tenant.name' => 'Tenant', 'unit.building.name' => 'Building', 'unit.name' => 'Unit', 'move_in_date' => 'Move-in date', 'move_out_date' => 'Move-out date'], 'records' => $records,
         ]);
     }
 

@@ -161,7 +161,7 @@ export default function Index({
                 <div className="overflow-x-auto rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
                     <table className="w-full text-left text-sm">
                         <thead className="bg-muted">
-                            <tr>
+                            <tr className="whitespace-nowrap">
                                 <th className="px-5 py-4">Filename</th>
                                 <th className="px-5 py-4">Uploaded</th>
                                 <th className="px-5 py-4 text-right">
@@ -171,7 +171,7 @@ export default function Index({
                         </thead>
                         <tbody>
                             {documents.data.map((document) => (
-                                <tr key={document.id} className="border-t">
+                                <tr key={document.id} className="border-t whitespace-nowrap">
                                     <td className="px-5 py-4 break-all">
                                         {document.filename}
                                     </td>
@@ -195,7 +195,7 @@ export default function Index({
                                 </tr>
                             ))}
                             {!documents.data.length && (
-                                <tr>
+                                <tr className="whitespace-nowrap">
                                     <td
                                         colSpan={3}
                                         className="p-12 text-center text-muted-foreground"

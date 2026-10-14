@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\UnitRequest;
 use App\Models\Building;
+use App\Models\Company;
 use App\Models\Unit;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -14,14 +15,23 @@ class UnitController extends Controller
 {
     public function index(Request $request): Response
     {
-        $filters = $request->validate(['search' => ['nullable', 'string', 'max:255']]);
+        $filters = $request->validate([
+            'search' => ['nullable', 'string', 'max:255'],
+            'company_id' => ['nullable', 'integer', 'exists:companies,id'],
+            'building_id' => ['nullable', 'integer', 'exists:buildings,id'],
+        ]);
         $records = Unit::query()->with(['building.company'])
             ->when($filters['search'] ?? null, fn ($query, $search) => $query->where('name', 'like', '%'.$search.'%'))
-            ->orderByDesc('id')->paginate(15)->withQueryString();
+            ->when($filters['company_id'] ?? null, fn ($query, $id) => $query->whereHas('building', fn ($query) => $query->where('company_id', $id)))
+            ->when($filters['building_id'] ?? null, fn ($query, $id) => $query->where('building_id', $id))
+            ->orderBy('name')->orderBy('id')->paginate(15)->withQueryString();
 
         return Inertia::render('units/index', [
             'title' => 'Units', 'singular' => 'Unit', 'resource' => 'units',
             'columns' => ['name' => 'Name', 'building.name' => 'Building', 'building.company.name' => 'Company'], 'records' => $records,
+            'filters' => $filters,
+            'companies' => Company::orderBy('name')->get(['id', 'name']),
+            'buildings' => Building::with('company:id,name')->orderBy('name')->get(['id', 'name', 'company_id']),
         ]);
     }
 
