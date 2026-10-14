@@ -15,6 +15,7 @@ import InputError from '@/components/input-error';
 import { Pages } from '@/components/pagination';
 import type { Pagination } from '@/components/pagination';
 import { Shell } from '@/components/page-shell';
+import { FormDialog } from './form-dialog';
 import { date } from '@/lib/date';
 
 type RecordRow = { id: number; [key: string]: unknown };
@@ -93,9 +94,7 @@ export default function Index({
                         {records.total} records
                     </p>
                 </div>
-                <Button asChild>
-                    <Link href={`/${resource}/create`}>Add {singular}</Link>
-                </Button>
+                <FormDialog buildings={buildings} />
             </div>
             <form
                 onSubmit={submit}
@@ -175,16 +174,18 @@ export default function Index({
             )}
             <div className="overflow-x-auto rounded-lg border">
                 <table className="w-full text-left text-sm">
-                    <thead className="bg-muted">
-                        <tr className="whitespace-nowrap">
-                            {Object.entries(columns).map(([key, label]) => (
-                                <th key={key} className="px-5 py-4">
-                                    {label}
-                                </th>
-                            ))}
-                            <th className="px-5 py-4 text-right">Actions</th>
-                        </tr>
-                    </thead>
+                    {records.data.length > 0 && (
+                        <thead className="text-xs whitespace-nowrap">
+                            <tr className="whitespace-nowrap">
+                                {Object.entries(columns).map(([key, label]) => (
+                                    <th key={key} className="px-5 py-4">
+                                        {label}
+                                    </th>
+                                ))}
+                                <th className="px-5 py-4 text-right" />
+                            </tr>
+                        </thead>
+                    )}
                     <tbody>
                         {records.data.map((record) => (
                             <tr
@@ -192,23 +193,19 @@ export default function Index({
                                 className="border-t whitespace-nowrap"
                             >
                                 {Object.keys(columns).map((key) => (
-                                    <td key={key} className={`px-5 py-4${key === 'name' ? ' font-bold' : ''}`}>
+                                    <td
+                                        key={key}
+                                        className={`px-5 py-4${key === 'name' ? ' font-bold' : ''}`}
+                                    >
                                         {cell(record, key)}
                                     </td>
                                 ))}
                                 <td className="px-5 py-4">
                                     <div className="-my-2 flex justify-end gap-2">
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            asChild
-                                        >
-                                            <Link
-                                                href={`/${resource}/${record.id}/edit`}
-                                            >
-                                                Edit
-                                            </Link>
-                                        </Button>
+                                        <FormDialog
+                                            record={record}
+                                            buildings={buildings}
+                                        />
                                         <Button
                                             variant="ghost"
                                             size="sm"

@@ -193,29 +193,31 @@ export default function Report({
             </p>
             <div className="overflow-x-auto rounded-lg border">
                 <table className="w-full text-left text-sm">
-                    <thead className="bg-muted">
-                        <tr className="whitespace-nowrap">
-                            {[
-                                'Company',
-                                'Building',
-                                'Unit',
-                                'Biller',
-                                'Case No.',
-                                'Period Covered',
-                                'Occupant',
-                                'Move-in Date',
-                                'Move-out Date',
-                                'Occupied Period',
-                            ].map((label) => (
-                                <th
-                                    key={label}
-                                    className="px-5 py-4 whitespace-nowrap"
-                                >
-                                    {label}
-                                </th>
-                            ))}
-                        </tr>
-                    </thead>
+                    {rows.length > 0 && (
+                        <thead className="text-xs whitespace-nowrap">
+                            <tr className="whitespace-nowrap">
+                                {[
+                                    'Company',
+                                    'Building',
+                                    'Unit',
+                                    'Biller',
+                                    'Case No.',
+                                    'Period Covered',
+                                    'Occupant',
+                                    'Move-In Date',
+                                    'Move-Out Date',
+                                    'Occupied Period',
+                                ].map((label) => (
+                                    <th
+                                        key={label}
+                                        className="px-5 py-4 whitespace-nowrap"
+                                    >
+                                        {label}
+                                    </th>
+                                ))}
+                            </tr>
+                        </thead>
+                    )}
                     <tbody>
                         {rows.map((row) => (
                             <tr

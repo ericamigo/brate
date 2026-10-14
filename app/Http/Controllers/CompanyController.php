@@ -24,50 +24,36 @@ class CompanyController extends Controller
         ]);
     }
 
-    public function create(): Response
-    {
-        return Inertia::render('companies/create', $this->formData(new Company));
-    }
-
     public function store(CompanyRequest $request): RedirectResponse
     {
         Company::create($request->validated());
 
-        return to_route('companies.index')->with('success', 'Company created.');
-    }
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'Company created.']);
 
-    public function edit(Company $company): Response
-    {
-        return Inertia::render('companies/edit', $this->formData($company));
+        return to_route('companies.index');
     }
 
     public function update(CompanyRequest $request, Company $company): RedirectResponse
     {
         $company->update($request->validated());
 
-        return to_route('companies.index')->with('success', 'Company updated.');
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'Company updated.']);
+
+        return to_route('companies.index');
     }
 
     public function destroy(Company $company): RedirectResponse
     {
         if ($company->buildings()->exists()) {
-            return back()->with('error', 'This company has related records. Remove those records first; historical records are not deleted automatically.');
+            Inertia::flash('toast', ['type' => 'error', 'message' => 'This company has related records. Remove those records first; historical records are not deleted automatically.']);
+
+            return back();
         }
 
         $company->delete();
 
-        return to_route('companies.index')->with('success', 'Company deleted.');
-    }
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'Company deleted.']);
 
-    /** @return array{title: string, singular: string, resource: string, record: Company, fields: list<array{name: string, label: string, type: string, required: bool, options?: array<int, string>}>} */
-    private function formData(Company $record): array
-    {
-
-        return [
-            'title' => 'Companies', 'singular' => 'Company', 'resource' => 'companies', 'record' => $record,
-            'fields' => [
-                ['name' => 'name', 'label' => 'Name', 'type' => 'text', 'required' => true],
-            ],
-        ];
+        return to_route('companies.index');
     }
 }

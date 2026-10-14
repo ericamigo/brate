@@ -1,6 +1,7 @@
-import { Head, useForm, usePage } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 import type { FormEvent } from 'react';
+import { DeleteDocumentButton } from '@/components/delete-document-button';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -30,9 +31,6 @@ export default function Index({
     documents: Pagination & { data: Document[] };
 }) {
     const [open, setOpen] = useState(false);
-    const { flash } = usePage<{
-        flash?: { success?: string; error?: string };
-    }>().props;
     const form = useForm<{ file: File | null }>({ file: null });
 
     function changeOpen(value: boolean) {
@@ -58,22 +56,6 @@ export default function Index({
         <>
             <Head title="Documents" />
             <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-                {flash?.success && (
-                    <div
-                        role="status"
-                        className="rounded-lg border bg-card p-4"
-                    >
-                        {flash.success}
-                    </div>
-                )}
-                {flash?.error && (
-                    <div
-                        role="alert"
-                        className="rounded-lg border border-destructive p-4 text-destructive"
-                    >
-                        {flash.error}
-                    </div>
-                )}
                 <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
                     <div>
                         <h1 className="text-2xl font-semibold tracking-tight">
@@ -160,18 +142,21 @@ export default function Index({
                 </div>
                 <div className="overflow-x-auto rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
                     <table className="w-full text-left text-sm">
-                        <thead className="bg-muted">
-                            <tr className="whitespace-nowrap">
-                                <th className="px-5 py-4">Filename</th>
-                                <th className="px-5 py-4">Uploaded</th>
-                                <th className="px-5 py-4 text-right">
-                                    Actions
-                                </th>
-                            </tr>
-                        </thead>
+                        {documents.data.length > 0 && (
+                            <thead className="text-xs whitespace-nowrap">
+                                <tr className="whitespace-nowrap">
+                                    <th className="px-5 py-4">Filename</th>
+                                    <th className="px-5 py-4">Uploaded</th>
+                                    <th className="px-5 py-4 text-right" />
+                                </tr>
+                            </thead>
+                        )}
                         <tbody>
                             {documents.data.map((document) => (
-                                <tr key={document.id} className="border-t whitespace-nowrap">
+                                <tr
+                                    key={document.id}
+                                    className="border-t whitespace-nowrap"
+                                >
                                     <td className="px-5 py-4 break-all">
                                         {document.filename}
                                     </td>
@@ -179,18 +164,23 @@ export default function Index({
                                         {date(document.created_at)}
                                     </td>
                                     <td className="px-5 py-4 text-right">
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            asChild
-                                        >
-                                            <a
-                                                href={`/documents/${document.id}`}
-                                                aria-label={`Download ${document.filename}`}
+                                        <div className="-my-2 flex justify-end gap-2">
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                asChild
                                             >
-                                                Download
-                                            </a>
-                                        </Button>
+                                                <a
+                                                    href={`/documents/${document.id}`}
+                                                    aria-label={`Download ${document.filename}`}
+                                                >
+                                                    Download
+                                                </a>
+                                            </Button>
+                                            <DeleteDocumentButton
+                                                document={document}
+                                            />
+                                        </div>
                                     </td>
                                 </tr>
                             ))}

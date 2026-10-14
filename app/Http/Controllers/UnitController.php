@@ -35,52 +35,36 @@ class UnitController extends Controller
         ]);
     }
 
-    public function create(): Response
-    {
-        return Inertia::render('units/create', $this->formData(new Unit));
-    }
-
     public function store(UnitRequest $request): RedirectResponse
     {
         Unit::create($request->validated());
 
-        return to_route('units.index')->with('success', 'Unit created.');
-    }
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'Unit created.']);
 
-    public function edit(Unit $unit): Response
-    {
-        return Inertia::render('units/edit', $this->formData($unit));
+        return to_route('units.index');
     }
 
     public function update(UnitRequest $request, Unit $unit): RedirectResponse
     {
         $unit->update($request->validated());
 
-        return to_route('units.index')->with('success', 'Unit updated.');
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'Unit updated.']);
+
+        return to_route('units.index');
     }
 
     public function destroy(Unit $unit): RedirectResponse
     {
         if ($unit->tenancies()->exists() || $unit->businessRateBills()->exists()) {
-            return back()->with('error', 'This unit has related records. Remove those records first; historical records are not deleted automatically.');
+            Inertia::flash('toast', ['type' => 'error', 'message' => 'This unit has related records. Remove those records first; historical records are not deleted automatically.']);
+
+            return back();
         }
 
         $unit->delete();
 
-        return to_route('units.index')->with('success', 'Unit deleted.');
-    }
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'Unit deleted.']);
 
-    /** @return array{title: string, singular: string, resource: string, record: Unit, fields: list<array{name: string, label: string, type: string, required: bool, options?: array<int, string>}>} */
-    private function formData(Unit $record): array
-    {
-        $buildings = Building::with('company')->orderBy('name')->orderBy('id')->get()->mapWithKeys(fn (Building $building) => [$building->id => $building->company->name.' / '.$building->name])->all();
-
-        return [
-            'title' => 'Units', 'singular' => 'Unit', 'resource' => 'units', 'record' => $record,
-            'fields' => [
-                ['name' => 'building_id', 'label' => 'Building', 'type' => 'select', 'required' => true, 'options' => $buildings],
-                ['name' => 'name', 'label' => 'Name', 'type' => 'text', 'required' => true],
-            ],
-        ];
+        return to_route('units.index');
     }
 }

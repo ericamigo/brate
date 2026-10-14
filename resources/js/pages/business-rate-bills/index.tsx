@@ -1,18 +1,18 @@
-import { Link, router, usePage } from "@inertiajs/react";
-import { useState } from "react";
-import type { FormEvent } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Pages } from "@/components/pagination";
-import type { Pagination } from "@/components/pagination";
-import { Shell } from "@/components/page-shell";
-import { date } from "@/lib/date";
+import { Link, router, usePage } from '@inertiajs/react';
+import { useState } from 'react';
+import type { FormEvent } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Pages } from '@/components/pagination';
+import type { Pagination } from '@/components/pagination';
+import { Shell } from '@/components/page-shell';
+import { date } from '@/lib/date';
 
 type RecordRow = { id: number; [key: string]: unknown };
-const title = "Business Rate Bills";
-const singular = "Business Rate Bill";
-const resource = "business-rate-bills";
+const title = 'Business Rate Bills';
+const singular = 'Business Rate Bill';
+const resource = 'business-rate-bills';
 
 type Props = {
     columns: Record<string, string>;
@@ -20,24 +20,24 @@ type Props = {
 };
 function cell(record: RecordRow, key: string): string {
     let value: unknown = record;
-    for (const part of key.split(".")) {
+    for (const part of key.split('.')) {
         value =
-            typeof value === "object" && value !== null
+            typeof value === 'object' && value !== null
                 ? (value as Record<string, unknown>)[part]
                 : null;
     }
-    return key.endsWith("_date") ||
-        key === "period_start" ||
-        key === "period_end"
+    return key.endsWith('_date') ||
+        key === 'period_start' ||
+        key === 'period_end'
         ? date(value as string | null)
-        : typeof value === "string" || typeof value === "number"
+        : typeof value === 'string' || typeof value === 'number'
           ? String(value)
-          : "—";
+          : '—';
 }
 export default function Index({ columns, records }: Props) {
     const { url, props } = usePage<{ errors: Record<string, string> }>();
     const [search, setSearch] = useState(
-        new URLSearchParams(url.split("?")[1] ?? "").get("search") ?? "",
+        new URLSearchParams(url.split('?')[1] ?? '').get('search') ?? '',
     );
     function submit(event: FormEvent) {
         event.preventDefault();
@@ -83,16 +83,18 @@ export default function Index({ columns, records }: Props) {
             )}
             <div className="overflow-x-auto rounded-lg border">
                 <table className="w-full text-left text-sm">
-                    <thead className="text-xs whitespace-nowrap">
-                        <tr className="whitespace-nowrap">
-                            {Object.entries(columns).map(([key, label]) => (
-                                <th key={key} className="px-5 py-4">
-                                    {label}
-                                </th>
-                            ))}
-                            <th className="px-5 py-4 text-right">Actions</th>
-                        </tr>
-                    </thead>
+                    {records.data.length > 0 && (
+                        <thead className="text-xs whitespace-nowrap">
+                            <tr className="whitespace-nowrap">
+                                {Object.entries(columns).map(([key, label]) => (
+                                    <th key={key} className="px-5 py-4">
+                                        {label}
+                                    </th>
+                                ))}
+                                <th className="px-5 py-4 text-right" />
+                            </tr>
+                        </thead>
+                    )}
                     <tbody>
                         {records.data.map((record) => (
                             <tr
@@ -105,7 +107,18 @@ export default function Index({ columns, records }: Props) {
                                     </td>
                                 ))}
                                 <td className="px-5 py-4">
-                                    <div className="flex justify-end gap-2 -my-2">
+                                    <div className="-my-2 flex justify-end gap-2">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            asChild
+                                        >
+                                            <Link
+                                                href={`/${resource}/${record.id}`}
+                                            >
+                                                Details
+                                            </Link>
+                                        </Button>
                                         <Button
                                             variant="outline"
                                             size="sm"

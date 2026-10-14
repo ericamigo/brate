@@ -14,7 +14,7 @@ class TenantController extends Controller
     public function index(Request $request): Response
     {
         $filters = $request->validate(['search' => ['nullable', 'string', 'max:255']]);
-        $records = Tenant::query()->with([])
+        $records = Tenant::query()->with(['currentTenancies.unit.building.company'])
             ->when($filters['search'] ?? null, fn ($query, $search) => $query->where('name', 'like', '%'.$search.'%'))
             ->orderByDesc('id')->paginate(15)->withQueryString();
 
@@ -24,50 +24,45 @@ class TenantController extends Controller
         ]);
     }
 
-    public function create(): Response
+    public function show(Tenant $tenant): Response
     {
-        return Inertia::render('tenants/create', $this->formData(new Tenant));
+        return Inertia::render('tenants/show', [
+            'tenant' => $tenant,
+            'tenancies' => $tenant->tenancies()->with('unit.building.company')
+                ->orderByDesc('move_in_date')->orderByDesc('id')->paginate(15),
+        ]);
     }
 
     public function store(TenantRequest $request): RedirectResponse
     {
         Tenant::create($request->validated());
 
-        return to_route('tenants.index')->with('success', 'Tenant created.');
-    }
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'Tenant created.']);
 
-    public function edit(Tenant $tenant): Response
-    {
-        return Inertia::render('tenants/edit', $this->formData($tenant));
+        return to_route('tenants.index');
     }
 
     public function update(TenantRequest $request, Tenant $tenant): RedirectResponse
     {
         $tenant->update($request->validated());
 
-        return to_route('tenants.index')->with('success', 'Tenant updated.');
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'Tenant updated.']);
+
+        return to_route('tenants.index');
     }
 
     public function destroy(Tenant $tenant): RedirectResponse
     {
         if ($tenant->tenancies()->exists()) {
-            return back()->with('error', 'This tenant has related records. Remove those records first; historical records are not deleted automatically.');
+            Inertia::flash('toast', ['type' => 'error', 'message' => 'This tenant has related records. Remove those records first; historical records are not deleted automatically.']);
+
+            return back();
         }
 
         $tenant->delete();
 
-        return to_route('tenants.index')->with('success', 'Tenant deleted.');
-    }
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'Tenant deleted.']);
 
-    /** @return array{title: string, singular: string, resource: string, record: Tenant, fields: list<array{name: string, label: string, type: string, required: bool, options?: array<int, string>}>} */
-    private function formData(Tenant $record): array
-    {
-
-        return [
-            'title' => 'Tenants', 'singular' => 'Tenant', 'resource' => 'tenants', 'record' => $record,
-            'fields' => [
-                ['name' => 'name', 'label' => 'Name', 'type' => 'text', 'required' => true],
-            ],
-        ];
+        return to_route('tenants.index');
     }
 }

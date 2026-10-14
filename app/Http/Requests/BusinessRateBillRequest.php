@@ -26,6 +26,8 @@ class BusinessRateBillRequest extends FormRequest
             'period_start' => ['required', 'date_format:Y-m-d'],
             'period_end' => ['required', 'date_format:Y-m-d', 'after_or_equal:period_start'],
             'amount' => ['required', 'numeric', 'min:0', 'max:999999999999.99', 'decimal:0,2'],
+            'files' => [$this->isMethod('post') ? 'nullable' : 'prohibited', 'array', 'max:10'],
+            'files.*' => ['file', 'mimes:jpg,jpeg,png,gif,webp,bmp,pdf', 'max:20480'],
         ];
     }
 }

@@ -1,5 +1,6 @@
 import { Link, useForm } from '@inertiajs/react';
 import type { FormEvent } from 'react';
+import { useState } from 'react';
 import { DateRangePicker } from '@/components/date-range-picker';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -33,6 +34,7 @@ type Props = {
     fields: Field[];
 };
 export default function Create({ record, fields }: Props) {
+    const [files, setFiles] = useState<File[]>([]);
     const form = useForm<Record<string, string>>(
         Object.fromEntries(
             fields.map((field) => {
@@ -47,7 +49,8 @@ export default function Create({ record, fields }: Props) {
     );
     function submit(event: FormEvent) {
         event.preventDefault();
-        form.post(`/${resource}`);
+        form.transform((data) => ({ ...data, files }));
+        form.post(`/${resource}`, { forceFormData: true });
     }
     return (
         <Shell title={`${'Add'} ${singular}`}>
@@ -192,6 +195,38 @@ export default function Create({ record, fields }: Props) {
                             </div>
                         ),
                     )}
+                <div className="grid gap-2">
+                    <Label htmlFor="bill-files">Documents (optional)</Label>
+                    <Input
+                        id="bill-files"
+                        type="file"
+                        multiple
+                        accept="image/jpeg,image/png,image/gif,image/webp,image/bmp,application/pdf"
+                        disabled={form.processing}
+                        onChange={(event) =>
+                            setFiles(Array.from(event.target.files ?? []))
+                        }
+                    />
+                    <p className="text-sm text-muted-foreground">
+                        Up to 10 images or PDFs, 20 MB each.
+                    </p>
+                    {Object.entries(form.errors)
+                        .filter(
+                            ([key]) =>
+                                key === 'files' || key.startsWith('files.'),
+                        )
+                        .map(([key, message]) => (
+                            <InputError key={key} message={message} />
+                        ))}
+                    {form.progress && (
+                        <progress
+                            value={form.progress.percentage}
+                            max={100}
+                            aria-label="Upload progress"
+                            className="w-full"
+                        />
+                    )}
+                </div>
                 <div className="mt-3 flex gap-3">
                     <Button disabled={form.processing}>Save {singular}</Button>
                     <Button variant="outline" asChild>

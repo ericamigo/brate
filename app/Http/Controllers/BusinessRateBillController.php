@@ -7,8 +7,10 @@ use App\Http\Requests\BusinessRateBillRequest;
 use App\Models\Biller;
 use App\Models\BusinessRateBill;
 use App\Models\Unit;
+use App\Services\BillDocuments;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -23,7 +25,7 @@ class BusinessRateBillController extends Controller
 
         return Inertia::render('business-rate-bills/index', [
             'title' => 'Business Rate Bills', 'singular' => 'Business Rate Bill', 'resource' => 'business-rate-bills',
-            'columns' => ['case_number' => 'Case number', 'reference_number' => 'Reference', 'biller.name' => 'Biller', 'unit.building.name' => 'Building', 'unit.name' => 'Unit', 'period_start' => 'Period start', 'period_end' => 'Period end', 'amount' => 'Amount', 'stage' => 'Stage'], 'records' => $records,
+            'columns' => ['case_number' => 'Case Number', 'reference_number' => 'Reference', 'biller.name' => 'Biller', 'unit.building.name' => 'Building', 'unit.name' => 'Unit', 'period_start' => 'Period Start', 'period_end' => 'Period End', 'amount' => 'Amount', 'stage' => 'Stage'], 'records' => $records,
         ]);
     }
 
@@ -32,11 +34,35 @@ class BusinessRateBillController extends Controller
         return Inertia::render('business-rate-bills/create', $this->formData(new BusinessRateBill));
     }
 
-    public function store(BusinessRateBillRequest $request): RedirectResponse
+    public function store(BusinessRateBillRequest $request, BillDocuments $documents): RedirectResponse
     {
-        BusinessRateBill::create($request->validated());
+        $data = $request->safe()->except('files');
+        $files = $request->file('files', []);
+        $documents->save(fn () => BusinessRateBill::create($data), is_array($files) ? array_values($files) : []);
 
-        return to_route('business-rate-bills.index')->with('success', 'Business Rate Bill created.');
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'Business Rate Bill created.']);
+
+        return to_route('business-rate-bills.index');
+    }
+
+    public function show(BusinessRateBill $businessRateBill): Response
+    {
+        return Inertia::render('business-rate-bills/show', [
+            'bill' => $businessRateBill->load(['unit.building.company', 'biller', 'documents']),
+        ]);
+    }
+
+    public function storeDocuments(Request $request, BusinessRateBill $businessRateBill, BillDocuments $documents): RedirectResponse
+    {
+        $request->validate([
+            'files' => ['required', 'array', 'min:1', 'max:10'],
+            'files.*' => ['required', 'file', 'mimes:jpg,jpeg,png,gif,webp,bmp,pdf', 'max:20480'],
+        ]);
+        $files = $request->file('files', []);
+        $documents->save(fn () => $businessRateBill, is_array($files) ? array_values($files) : []);
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'Bill documents uploaded.']);
+
+        return to_route('business-rate-bills.show', $businessRateBill);
     }
 
     public function edit(BusinessRateBill $businessRateBill): Response
@@ -48,14 +74,21 @@ class BusinessRateBillController extends Controller
     {
         $businessRateBill->update($request->validated());
 
-        return to_route('business-rate-bills.index')->with('success', 'Business Rate Bill updated.');
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'Business Rate Bill updated.']);
+
+        return to_route('business-rate-bills.index');
     }
 
     public function destroy(BusinessRateBill $businessRateBill): RedirectResponse
     {
-        $businessRateBill->delete();
+        DB::transaction(function () use ($businessRateBill) {
+            $businessRateBill->documents()->update(['documentable_type' => null, 'documentable_id' => null]);
+            $businessRateBill->delete();
+        });
 
-        return to_route('business-rate-bills.index')->with('success', 'Business Rate Bill deleted.');
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'Business Rate Bill deleted.']);
+
+        return to_route('business-rate-bills.index');
     }
 
     /** @return array{title: string, singular: string, resource: string, record: BusinessRateBill, fields: list<array{name: string, label: string, type: string, required: bool, options?: array<int|string, string>}>} */

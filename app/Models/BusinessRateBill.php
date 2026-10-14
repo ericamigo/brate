@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Collection;
 
 /**
@@ -18,6 +19,12 @@ use Illuminate\Support\Collection;
 #[Fillable(['unit_id', 'case_number', 'reference_number', 'biller_id', 'period_start', 'period_end', 'amount', 'stage'])]
 class BusinessRateBill extends Model
 {
+    /** @return MorphMany<Document, $this> */
+    public function documents(): MorphMany
+    {
+        return $this->morphMany(Document::class, 'documentable');
+    }
+
     protected $attributes = ['stage' => 'unverified'];
 
     /** @use HasFactory<BusinessRateBillFactory> */

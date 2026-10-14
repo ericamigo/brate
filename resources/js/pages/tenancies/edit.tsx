@@ -5,14 +5,8 @@ import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
-import { date } from '@/lib/date';
+import { Combobox } from '@/components/ui/combobox';
+import { DatePicker } from '@/components/date-picker';
 import { Shell } from '@/components/page-shell';
 const controlClass =
     'w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring';
@@ -40,29 +34,13 @@ export default function Edit({ record, fields }: Props) {
                     record[field.name] == null
                         ? ''
                         : String(record[field.name]);
-                if (field.type === 'date') value = value ? date(value) : '';
+                if (field.type === 'date') value = value.slice(0, 10);
                 return [field.name, value];
             }),
         ),
     );
     function submit(event: FormEvent) {
         event.preventDefault();
-        form.transform((data) =>
-            Object.fromEntries(
-                Object.entries(data).map(([key, value]) => {
-                    if (key === 'move_in_date' || key === 'move_out_date') {
-                        const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(value);
-                        return [
-                            key,
-                            match
-                                ? `${match[3]}-${match[2]}-${match[1]}`
-                                : value,
-                        ];
-                    }
-                    return [key, value];
-                }),
-            ),
-        );
         form.put(`/${resource}/${record.id}`);
     }
     return (
@@ -116,47 +94,36 @@ export default function Edit({ record, fields }: Props) {
                                     {field.required && ' *'}
                                 </Label>
                                 {field.type === 'select' ? (
-                                    <Select
-                                        name={field.name}
-                                        value={
-                                            form.data[field.name] ||
-                                            (field.required ? '' : 'none')
+                                    <Combobox
+                                        id={field.name}
+                                        label={field.label}
+                                        options={field.options ?? {}}
+                                        value={form.data[field.name]}
+                                        onChange={(value) =>
+                                            form.setData(field.name, value)
                                         }
-                                        onValueChange={(value) =>
-                                            form.setData(
-                                                field.name,
-                                                value === 'none' ? '' : value,
-                                            )
+                                        invalid={Boolean(
+                                            form.errors[field.name],
+                                        )}
+                                        disabled={form.processing}
+                                        searchPlaceholder={
+                                            field.name === 'unit_id'
+                                                ? 'Search company, building or unit…'
+                                                : 'Search tenant…'
                                         }
-                                        required={field.required}
-                                    >
-                                        <SelectTrigger
-                                            id={field.name}
-                                            className="w-full"
-                                            aria-invalid={Boolean(
-                                                form.errors[field.name],
-                                            )}
-                                        >
-                                            <SelectValue
-                                                placeholder={`Choose ${field.label}`}
-                                            />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem
-                                                value="none"
-                                                disabled={field.required}
-                                            >
-                                                Choose {field.label}
-                                            </SelectItem>
-                                            {Object.entries(
-                                                field.options ?? {},
-                                            ).map(([id, label]) => (
-                                                <SelectItem key={id} value={id}>
-                                                    {label}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                    />
+                                ) : field.type === 'date' ? (
+                                    <DatePicker
+                                        id={field.name}
+                                        value={form.data[field.name]}
+                                        onChange={(value) =>
+                                            form.setData(field.name, value)
+                                        }
+                                        invalid={Boolean(
+                                            form.errors[field.name],
+                                        )}
+                                        disabled={form.processing}
+                                    />
                                 ) : field.type === 'textarea' ? (
                                     <textarea
                                         id={field.name}

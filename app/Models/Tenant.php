@@ -19,4 +19,11 @@ class Tenant extends Model
     {
         return $this->hasMany(Tenancy::class);
     }
+
+    /** @return HasMany<Tenancy, $this> */
+    public function currentTenancies(): HasMany
+    {
+        return $this->tenancies()->overlapping(today()->toDateString(), today()->toDateString())
+            ->orderByDesc('move_in_date')->orderByDesc('id');
+    }
 }

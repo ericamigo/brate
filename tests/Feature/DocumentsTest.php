@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Document;
+use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -36,4 +37,25 @@ it('returns not found for missing documents or files', function () {
     $this->get('/documents/99999')->assertNotFound();
     $document = Document::create(['filename' => 'missing.txt', 'path' => 'documents/missing']);
     $this->get('/documents/'.$document->id)->assertNotFound();
+});
+
+it('deletes standalone documents and their stored files', function () {
+    Storage::fake('local');
+    $this->post('/documents', ['file' => UploadedFile::fake()->createWithContent('report.txt', 'contents')]);
+    $document = Document::firstOrFail();
+    $this->from('/documents')->delete('/documents/'.$document->id)
+        ->assertRedirect('/documents')->assertInertiaFlash('toast.type', 'success');
+    $this->assertModelMissing($document);
+    Storage::disk('local')->assertMissing($document->path);
+    $this->get('/documents/'.$document->id)->assertNotFound();
+});
+
+it('preserves document records if file deletion fails', function () {
+    $document = Document::create(['filename' => 'report.txt', 'path' => 'documents/report']);
+    $disk = Mockery::mock(Filesystem::class);
+    $disk->shouldReceive('delete')->with($document->path)->once()->andReturn(false);
+    Storage::shouldReceive('disk')->with('local')->once()->andReturn($disk);
+    $this->from('/documents')->delete('/documents/'.$document->id)
+        ->assertRedirect('/documents')->assertInertiaFlash('toast.type', 'error');
+    $this->assertModelExists($document);
 });

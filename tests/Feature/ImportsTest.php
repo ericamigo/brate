@@ -87,7 +87,7 @@ it('imports related records but skips tenancies with empty start dates', functio
     for ($i = 0; $i < 2; $i++) {
         $this->post('/imports', ['source' => 're-leased', 'company_id' => $company->id, 'file' => reLeasedWorkbook($rows)])
             ->assertRedirect('/imports')->assertSessionHasNoErrors()
-            ->assertSessionHas('success', 'Import complete: 0 tenancies created, 0 existing tenancies skipped, 2 skipped without a start date.');
+            ->assertInertiaFlash('toast.message', 'Import complete: 0 tenancies created, 0 existing tenancies skipped, 2 skipped without a start date.');
     }
     $this->assertDatabaseCount('buildings', 1);
     $this->assertDatabaseCount('units', 2);

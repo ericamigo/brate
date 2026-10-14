@@ -24,50 +24,36 @@ class BillerController extends Controller
         ]);
     }
 
-    public function create(): Response
-    {
-        return Inertia::render('billers/create', $this->formData(new Biller));
-    }
-
     public function store(BillerRequest $request): RedirectResponse
     {
         Biller::create($request->validated());
 
-        return to_route('billers.index')->with('success', 'Biller created.');
-    }
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'Biller created.']);
 
-    public function edit(Biller $biller): Response
-    {
-        return Inertia::render('billers/edit', $this->formData($biller));
+        return to_route('billers.index');
     }
 
     public function update(BillerRequest $request, Biller $biller): RedirectResponse
     {
         $biller->update($request->validated());
 
-        return to_route('billers.index')->with('success', 'Biller updated.');
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'Biller updated.']);
+
+        return to_route('billers.index');
     }
 
     public function destroy(Biller $biller): RedirectResponse
     {
         if ($biller->bills()->exists()) {
-            return back()->with('error', 'This biller has related records. Remove those records first; historical records are not deleted automatically.');
+            Inertia::flash('toast', ['type' => 'error', 'message' => 'This biller has related records. Remove those records first; historical records are not deleted automatically.']);
+
+            return back();
         }
 
         $biller->delete();
 
-        return to_route('billers.index')->with('success', 'Biller deleted.');
-    }
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'Biller deleted.']);
 
-    /** @return array{title: string, singular: string, resource: string, record: Biller, fields: list<array{name: string, label: string, type: string, required: bool, options?: array<int, string>}>} */
-    private function formData(Biller $record): array
-    {
-
-        return [
-            'title' => 'Billers', 'singular' => 'Biller', 'resource' => 'billers', 'record' => $record,
-            'fields' => [
-                ['name' => 'name', 'label' => 'Name', 'type' => 'text', 'required' => true],
-            ],
-        ];
+        return to_route('billers.index');
     }
 }

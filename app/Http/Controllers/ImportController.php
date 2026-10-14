@@ -27,6 +27,8 @@ class ImportController extends Controller
         ]);
         $result = $importer->import($request->file('file'), (int) $data['company_id']);
 
-        return to_route('imports.index')->with('success', "Import complete: {$result['created']} tenancies created, {$result['skipped']} existing tenancies skipped, {$result['missingStart']} skipped without a start date.");
+        Inertia::flash('toast', ['type' => 'success', 'message' => "Import complete: {$result['created']} tenancies created, {$result['skipped']} existing tenancies skipped, {$result['missingStart']} skipped without a start date."]);
+
+        return to_route('imports.index');
     }
 }

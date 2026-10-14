@@ -20,58 +20,42 @@ class BuildingController extends Controller
             ->orderByDesc('id')->paginate(15)->withQueryString();
 
         return Inertia::render('buildings/index', [
+            'companies' => Company::orderBy('name')->get(['id', 'name']),
             'title' => 'Buildings', 'singular' => 'Building', 'resource' => 'buildings',
             'columns' => ['name' => 'Name', 'company.name' => 'Company', 'address' => 'Address'], 'records' => $records,
         ]);
-    }
-
-    public function create(): Response
-    {
-        return Inertia::render('buildings/create', $this->formData(new Building));
     }
 
     public function store(BuildingRequest $request): RedirectResponse
     {
         Building::create($request->validated());
 
-        return to_route('buildings.index')->with('success', 'Building created.');
-    }
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'Building created.']);
 
-    public function edit(Building $building): Response
-    {
-        return Inertia::render('buildings/edit', $this->formData($building));
+        return to_route('buildings.index');
     }
 
     public function update(BuildingRequest $request, Building $building): RedirectResponse
     {
         $building->update($request->validated());
 
-        return to_route('buildings.index')->with('success', 'Building updated.');
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'Building updated.']);
+
+        return to_route('buildings.index');
     }
 
     public function destroy(Building $building): RedirectResponse
     {
         if ($building->units()->exists()) {
-            return back()->with('error', 'This building has related records. Remove those records first; historical records are not deleted automatically.');
+            Inertia::flash('toast', ['type' => 'error', 'message' => 'This building has related records. Remove those records first; historical records are not deleted automatically.']);
+
+            return back();
         }
 
         $building->delete();
 
-        return to_route('buildings.index')->with('success', 'Building deleted.');
-    }
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'Building deleted.']);
 
-    /** @return array{title: string, singular: string, resource: string, record: Building, fields: list<array{name: string, label: string, type: string, required: bool, options?: array<int, string>}>} */
-    private function formData(Building $record): array
-    {
-        $companies = Company::orderBy('name')->orderBy('id')->pluck('name', 'id')->all();
-
-        return [
-            'title' => 'Buildings', 'singular' => 'Building', 'resource' => 'buildings', 'record' => $record,
-            'fields' => [
-                ['name' => 'company_id', 'label' => 'Company', 'type' => 'select', 'required' => true, 'options' => $companies],
-                ['name' => 'name', 'label' => 'Name', 'type' => 'text', 'required' => true],
-                ['name' => 'address', 'label' => 'Address', 'type' => 'text', 'required' => false],
-            ],
-        ];
+        return to_route('buildings.index');
     }
 }

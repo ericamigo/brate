@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Pages } from '@/components/pagination';
 import type { Pagination } from '@/components/pagination';
 import { Shell } from '@/components/page-shell';
+import { FormDialog } from './form-dialog';
 import { date } from '@/lib/date';
 
 type RecordRow = { id: number; [key: string]: unknown };
@@ -54,9 +55,7 @@ export default function Index({ columns, records }: Props) {
                         {records.total} records
                     </p>
                 </div>
-                <Button asChild>
-                    <Link href={`/${resource}/create`}>Add {singular}</Link>
-                </Button>
+                <FormDialog />
             </div>
             <form
                 onSubmit={submit}
@@ -83,19 +82,24 @@ export default function Index({ columns, records }: Props) {
             )}
             <div className="overflow-x-auto rounded-lg border">
                 <table className="w-full text-left text-sm">
-                    <thead className="bg-muted">
-                        <tr className="whitespace-nowrap">
-                            {Object.entries(columns).map(([key, label]) => (
-                                <th key={key} className="px-5 py-4">
-                                    {label}
-                                </th>
-                            ))}
-                            <th className="px-5 py-4 text-right">Actions</th>
-                        </tr>
-                    </thead>
+                    {records.data.length > 0 && (
+                        <thead className="text-xs whitespace-nowrap">
+                            <tr className="whitespace-nowrap">
+                                {Object.entries(columns).map(([key, label]) => (
+                                    <th key={key} className="px-5 py-4">
+                                        {label}
+                                    </th>
+                                ))}
+                                <th className="px-5 py-4 text-right" />
+                            </tr>
+                        </thead>
+                    )}
                     <tbody>
                         {records.data.map((record) => (
-                            <tr key={record.id} className="border-t whitespace-nowrap">
+                            <tr
+                                key={record.id}
+                                className="border-t whitespace-nowrap"
+                            >
                                 {Object.keys(columns).map((key) => (
                                     <td key={key} className="px-5 py-4">
                                         {cell(record, key)}
@@ -103,17 +107,7 @@ export default function Index({ columns, records }: Props) {
                                 ))}
                                 <td className="px-5 py-4">
                                     <div className="-my-2 flex justify-end gap-2">
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            asChild
-                                        >
-                                            <Link
-                                                href={`/${resource}/${record.id}/edit`}
-                                            >
-                                                Edit
-                                            </Link>
-                                        </Button>
+                                        <FormDialog record={record} />
                                         <Button
                                             variant="ghost"
                                             size="sm"

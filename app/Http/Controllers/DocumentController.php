@@ -47,7 +47,9 @@ class DocumentController extends Controller
             throw $exception;
         }
 
-        return to_route('documents.index')->with('success', 'Document uploaded.');
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'Document uploaded.']);
+
+        return to_route('documents.index');
     }
 
     public function show(Document $document): StreamedResponse
@@ -59,5 +61,19 @@ class DocumentController extends Controller
             'Content-Type' => 'application/octet-stream',
             'X-Content-Type-Options' => 'nosniff',
         ]);
+    }
+
+    public function destroy(Document $document): RedirectResponse
+    {
+        if (! Storage::disk('local')->delete($document->storagePath())) {
+            Inertia::flash('toast', ['type' => 'error', 'message' => 'The file could not be deleted. Please try again.']);
+
+            return back();
+        }
+
+        $document->delete();
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'Document deleted.']);
+
+        return back();
     }
 }

@@ -9,16 +9,25 @@ use App\Models\Tenancy;
 use App\Models\Tenant;
 use App\Models\Unit;
 use Carbon\CarbonInterface;
+use Illuminate\Support\Facades\Route;
 use Inertia\Testing\AssertableInertia as Assert;
 
 it('manages business rates resources without login', function (string $resource, string $model, string $field, string $value) {
     $data = $model::factory()->raw();
     $this->get('/'.$resource)->assertOk()->assertInertia(fn (Assert $page) => $page->component($resource.'/index'));
-    $this->get('/'.$resource.'/create')->assertOk()->assertInertia(fn (Assert $page) => $page->component($resource.'/create'));
+    if (in_array($resource, ['tenancies', 'business-rate-bills'])) {
+        $this->get('/'.$resource.'/create')->assertOk()->assertInertia(fn (Assert $page) => $page->component($resource.'/create'));
+    } else {
+        expect(Route::has($resource.'.create'))->toBeFalse();
+    }
     $this->post('/'.$resource, $data)->assertRedirect('/'.$resource)->assertSessionHasNoErrors();
     $saved = $model::latest('id')->firstOrFail();
     $this->assertModelExists($saved);
-    $this->get('/'.$resource.'/'.$saved->id.'/edit')->assertOk()->assertInertia(fn (Assert $page) => $page->component($resource.'/edit'));
+    if (in_array($resource, ['tenancies', 'business-rate-bills'])) {
+        $this->get('/'.$resource.'/'.$saved->id.'/edit')->assertOk()->assertInertia(fn (Assert $page) => $page->component($resource.'/edit'));
+    } else {
+        expect(Route::has($resource.'.edit'))->toBeFalse();
+    }
     $this->put('/'.$resource.'/'.$saved->id, array_replace($data, [$field => $value]))->assertRedirect('/'.$resource)->assertSessionHasNoErrors();
     $actual = $saved->fresh()->getAttribute($field);
     expect($actual instanceof CarbonInterface ? $actual->toDateString() : $actual)->toBe($value);
@@ -69,7 +78,7 @@ it('requires existing billers and displays their names', function () {
     }
     expect($bill->fresh()->biller_id)->toBe($other->id);
     $this->assertDatabaseCount('business_rate_bills', 1);
-    $this->delete('/billers/'.$other->id)->assertSessionHas('error');
+    $this->delete('/billers/'.$other->id)->assertInertiaFlash('toast.type', 'error');
     $this->assertModelExists($other);
 });
 
@@ -105,7 +114,7 @@ it('blocks deletion of parents with historical records', function () {
     $tenancy = Tenancy::factory()->create();
     $bill = BusinessRateBill::factory()->for($tenancy->unit)->create();
     foreach ([['companies', $tenancy->unit->building->company], ['buildings', $tenancy->unit->building], ['units', $tenancy->unit], ['tenants', $tenancy->tenant]] as [$resource, $parent]) {
-        $this->delete('/'.$resource.'/'.$parent->id)->assertSessionHas('error');
+        $this->delete('/'.$resource.'/'.$parent->id)->assertInertiaFlash('toast.type', 'error');
         $this->assertModelExists($parent);
     }
     $this->assertModelExists($tenancy);
@@ -137,4 +146,30 @@ it('filters units by company, building and name', function () {
     $this->get('/units?'.http_build_query(['company_id' => $a->building->company_id, 'building_id' => $a->building_id, 'search' => 'Matching']))
         ->assertInertia(fn (Assert $page) => $page->where('records.total', 1)->where('records.data.0.id', $a->id));
     $this->get('/units?company_id=999999&building_id=999999')->assertSessionHasErrors(['company_id', 'building_id']);
+});
+
+it('filters tenancies by company, building, unit and search', function () {
+    $a = Tenancy::factory()->create();
+    Tenancy::factory()->for($a->unit)->create();
+    $unit = Unit::factory()->for($a->unit->building)->create();
+    Tenancy::factory()->for($unit)->create();
+    $building = Building::factory()->create(['company_id' => $a->unit->building->company_id]);
+    Tenancy::factory()->for(Unit::factory()->for($building)->create())->create();
+    Tenancy::factory()->create();
+    $this->get('/tenancies?company_id='.$a->unit->building->company_id)->assertInertia(fn (Assert $page) => $page->where('records.total', 4));
+    $this->get('/tenancies?building_id='.$a->unit->building_id)->assertInertia(fn (Assert $page) => $page->where('records.total', 3));
+    $this->get('/tenancies?unit_id='.$a->unit_id)->assertInertia(fn (Assert $page) => $page->where('records.total', 2));
+    $this->get('/tenancies?'.http_build_query(['company_id' => $a->unit->building->company_id, 'building_id' => $a->unit->building_id, 'unit_id' => $a->unit_id, 'search' => $a->unit->name]))
+        ->assertInertia(fn (Assert $page) => $page->where('records.total', 2));
+    $this->get('/tenancies?company_id=999999&building_id=999999&unit_id=999999')->assertSessionHasErrors(['company_id', 'building_id', 'unit_id']);
+});
+
+it('searches tenancies by tenant or unit name while preserving filters', function () {
+    $tenant = Tenant::factory()->create(['name' => 'Searchable Tenant']);
+    $match = Tenancy::factory()->for($tenant)->create();
+    Tenancy::factory()->for($tenant)->create();
+    Tenancy::factory()->create();
+    $this->get('/tenancies?search=Searchable')->assertInertia(fn (Assert $page) => $page->where('records.total', 2));
+    $this->get('/tenancies?'.http_build_query(['search' => 'Searchable', 'unit_id' => $match->unit_id]))
+        ->assertInertia(fn (Assert $page) => $page->where('records.total', 1)->where('records.data.0.id', $match->id));
 });
