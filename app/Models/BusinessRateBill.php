@@ -14,11 +14,17 @@ use Illuminate\Support\Collection;
  * @property CarbonImmutable $period_start
  * @property CarbonImmutable $period_end
  */
-#[Fillable(['unit_id', 'reference_number', 'period_start', 'period_end', 'amount'])]
+#[Fillable(['unit_id', 'reference_number', 'biller_id', 'period_start', 'period_end', 'amount'])]
 class BusinessRateBill extends Model
 {
     /** @use HasFactory<BusinessRateBillFactory> */
     use HasFactory;
+
+    /** @return BelongsTo<Biller, $this> */
+    public function biller(): BelongsTo
+    {
+        return $this->belongsTo(Biller::class);
+    }
 
     /** @return BelongsTo<Unit, $this> */
     public function unit(): BelongsTo

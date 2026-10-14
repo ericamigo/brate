@@ -70,7 +70,7 @@ class BuildingController extends Controller
             'fields' => [
                 ['name' => 'company_id', 'label' => 'Company', 'type' => 'select', 'required' => true, 'options' => $companies],
                 ['name' => 'name', 'label' => 'Name', 'type' => 'text', 'required' => true],
-                ['name' => 'address', 'label' => 'Address', 'type' => 'textarea', 'required' => false],
+                ['name' => 'address', 'label' => 'Address', 'type' => 'text', 'required' => false],
             ],
         ];
     }

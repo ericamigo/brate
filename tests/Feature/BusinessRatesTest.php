@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Biller;
 use App\Models\Building;
 use App\Models\BusinessRateBill;
 use App\Models\Company;
@@ -23,6 +24,7 @@ it('manages business rates resources without login', function (string $resource,
     $this->delete('/'.$resource.'/'.$saved->id)->assertRedirect('/'.$resource);
     $this->assertModelMissing($saved);
 })->with([
+    ['billers', Biller::class, 'name', 'Updated biller'],
     ['companies', Company::class, 'name', 'New company'],
     ['buildings', Building::class, 'address', 'New address'],
     ['units', Unit::class, 'name', 'New unit'],
@@ -46,6 +48,30 @@ it('matches historical occupants and displays vacant bills', function () {
         ->where('rows.2.occupant', null));
 });
 
+it('requires existing billers and displays their names', function () {
+    $data = BusinessRateBill::factory()->raw();
+    $biller = Biller::factory()->create(['name' => 'CDER']);
+    $data['biller_id'] = $biller->id;
+    $this->post('/business-rate-bills', $data)->assertRedirect('/business-rate-bills')->assertSessionHasNoErrors();
+    $bill = BusinessRateBill::latest('id')->firstOrFail();
+    expect($bill->biller_id)->toBe($biller->id);
+    $this->get('/business-rate-bills')->assertInertia(fn (Assert $page) => $page->where('records.data.0.biller.name', 'CDER'));
+    $other = Biller::factory()->create(['name' => 'London Borough of Hounslow (Council)']);
+    $data['biller_id'] = $other->id;
+    $this->put('/business-rate-bills/'.$bill->id, $data)->assertSessionHasNoErrors();
+    $this->get('/business-rate-bills/'.$bill->id.'/edit')->assertInertia(fn (Assert $page) => $page->where('record.biller_id', $other->id));
+    $this->get('/')->assertInertia(fn (Assert $page) => $page->where('rows.0.biller', $other->name));
+    foreach ([null, 999999] as $invalid) {
+        $data['biller_id'] = $invalid;
+        $this->post('/business-rate-bills', $data)->assertSessionHasErrors('biller_id');
+        $this->put('/business-rate-bills/'.$bill->id, $data)->assertSessionHasErrors('biller_id');
+    }
+    expect($bill->fresh()->biller_id)->toBe($other->id);
+    $this->assertDatabaseCount('business_rate_bills', 1);
+    $this->delete('/billers/'.$other->id)->assertSessionHas('error');
+    $this->assertModelExists($other);
+});
+
 it('includes occupancy on the final billing day', function () {
     $bill = BusinessRateBill::factory()->create();
     $tenancy = Tenancy::factory()->for($bill->unit)->create(['move_in_date' => '2026-03-31']);
@@ -56,7 +82,7 @@ it('validates date order and amounts without creating records', function () {
     $tenancy = Tenancy::factory()->raw();
     $bill = BusinessRateBill::factory()->raw();
     $this->post('/tenancies', [])->assertSessionHasErrors(['unit_id', 'tenant_id', 'move_in_date']);
-    $this->post('/business-rate-bills', [])->assertSessionHasErrors(['unit_id', 'period_start', 'period_end', 'amount']);
+    $this->post('/business-rate-bills', [])->assertSessionHasErrors(['biller_id', 'unit_id', 'period_start', 'period_end', 'amount']);
     $this->post('/tenancies', array_replace($tenancy, ['move_out_date' => '2025-12-31']))->assertSessionHasErrors('move_out_date');
     $this->post('/business-rate-bills', array_replace($bill, ['period_end' => '2025-12-31', 'amount' => '-1']))->assertSessionHasErrors(['period_end', 'amount']);
     $this->assertDatabaseCount('tenancies', 0);

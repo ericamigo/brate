@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\BusinessRateBillRequest;
+use App\Models\Biller;
 use App\Models\BusinessRateBill;
 use App\Models\Unit;
 use Illuminate\Http\RedirectResponse;
@@ -15,13 +16,13 @@ class BusinessRateBillController extends Controller
     public function index(Request $request): Response
     {
         $filters = $request->validate(['search' => ['nullable', 'string', 'max:255']]);
-        $records = BusinessRateBill::query()->with(['unit.building'])
+        $records = BusinessRateBill::query()->with(['unit.building', 'biller'])
             ->when($filters['search'] ?? null, fn ($query, $search) => $query->whereHas('unit', fn ($query) => $query->where('name', 'like', '%'.$search.'%')))
             ->orderByDesc('id')->paginate(15)->withQueryString();
 
         return Inertia::render('business-rates/index', [
             'title' => 'Business Rate Bills', 'singular' => 'Business Rate Bill', 'resource' => 'business-rate-bills',
-            'columns' => ['reference_number' => 'Reference', 'unit.building.name' => 'Building', 'unit.name' => 'Unit', 'period_start' => 'Period start', 'period_end' => 'Period end', 'amount' => 'Amount'], 'records' => $records,
+            'columns' => ['reference_number' => 'Reference', 'biller.name' => 'Biller', 'unit.building.name' => 'Building', 'unit.name' => 'Unit', 'period_start' => 'Period start', 'period_end' => 'Period end', 'amount' => 'Amount'], 'records' => $records,
         ]);
     }
 
@@ -65,6 +66,7 @@ class BusinessRateBillController extends Controller
             'title' => 'Business Rate Bills', 'singular' => 'Business Rate Bill', 'resource' => 'business-rate-bills', 'record' => $record,
             'fields' => [
                 ['name' => 'unit_id', 'label' => 'Unit', 'type' => 'select', 'required' => true, 'options' => $units],
+                ['name' => 'biller_id', 'label' => 'Biller', 'type' => 'select', 'required' => true, 'options' => Biller::orderBy('name')->orderBy('id')->pluck('name', 'id')->all()],
                 ['name' => 'reference_number', 'label' => 'Reference number', 'type' => 'text', 'required' => false],
                 ['name' => 'period_start', 'label' => 'Period start', 'type' => 'date', 'required' => true],
                 ['name' => 'period_end', 'label' => 'Period end', 'type' => 'date', 'required' => true],

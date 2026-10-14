@@ -104,7 +104,7 @@ export function useAppearance(): UseAppearanceReturn {
         // Store in localStorage for client-side persistence...
         localStorage.setItem('appearance', mode);
 
-        // Store in cookie for SSR...
+        // Persist the preference for the initial page theme.
         setCookie('appearance', mode);
 
         applyTheme(mode);

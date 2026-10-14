@@ -1,7 +1,7 @@
-import type { LucideIcon } from 'lucide-react';
+import type { RemixiconComponentType } from '@remixicon/react';
 
 interface IconProps {
-    iconNode?: LucideIcon | null;
+    iconNode?: RemixiconComponentType | null;
     className?: string;
 }
 

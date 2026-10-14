@@ -16,6 +16,7 @@ class BusinessRateBillRequest extends FormRequest
     {
         return [
             'unit_id' => ['required', 'integer', 'exists:units,id'],
+            'biller_id' => ['required', 'integer', 'exists:billers,id'],
             'reference_number' => ['nullable', 'string', 'max:255'],
             'period_start' => ['required', 'date_format:Y-m-d'],
             'period_end' => ['required', 'date_format:Y-m-d', 'after_or_equal:period_start'],

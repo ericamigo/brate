@@ -1,9 +1,17 @@
 import { Link, useForm } from '@inertiajs/react';
 import type { FormEvent } from 'react';
+import { DateRangePicker } from '@/components/date-range-picker';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { Shell, controlClass } from './shared';
 
 type Field = {
@@ -59,59 +67,124 @@ export default function ManagementForm({
                 onSubmit={submit}
                 className="grid max-w-2xl gap-5 rounded-lg border bg-card p-6"
             >
-                {fields.map((field) => (
-                    <div key={field.name} className="grid gap-2">
-                        <Label htmlFor={field.name}>
-                            {field.label}
-                            {field.required && ' *'}
-                        </Label>
-                        {field.type === 'select' ? (
-                            <select
-                                id={field.name}
-                                value={form.data[field.name]}
-                                onChange={(event) =>
-                                    form.setData(field.name, event.target.value)
-                                }
-                                required={field.required}
-                                className={controlClass}
-                            >
-                                <option value="">Choose {field.label}</option>
-                                {Object.entries(field.options ?? {}).map(
-                                    ([id, label]) => (
-                                        <option key={id} value={id}>
-                                            {label}
-                                        </option>
-                                    ),
-                                )}
-                            </select>
-                        ) : field.type === 'textarea' ? (
-                            <textarea
-                                id={field.name}
-                                value={form.data[field.name]}
-                                onChange={(event) =>
-                                    form.setData(field.name, event.target.value)
-                                }
-                                rows={3}
-                                className={controlClass}
-                            />
+                {fields
+                    .filter((field) => field.name !== 'period_end')
+                    .map((field) =>
+                        field.name === 'period_start' ? (
+                            <div key={field.name} className="grid gap-2">
+                                <Label htmlFor="billing-period">
+                                    Billing period *
+                                </Label>
+                                <DateRangePicker
+                                    id="billing-period"
+                                    start={form.data.period_start}
+                                    end={form.data.period_end}
+                                    onChange={(start, end) =>
+                                        form.setData((data) => ({
+                                            ...data,
+                                            period_start: start,
+                                            period_end: end,
+                                        }))
+                                    }
+                                    invalid={Boolean(
+                                        form.errors.period_start ||
+                                        form.errors.period_end,
+                                    )}
+                                />
+                                <InputError
+                                    message={form.errors.period_start}
+                                />
+                                <InputError message={form.errors.period_end} />
+                            </div>
                         ) : (
-                            <Input
-                                id={field.name}
-                                type={field.type}
-                                value={form.data[field.name]}
-                                onChange={(event) =>
-                                    form.setData(field.name, event.target.value)
-                                }
-                                required={field.required}
-                                step={
-                                    field.type === 'number' ? '0.01' : undefined
-                                }
-                                min={field.type === 'number' ? 0 : undefined}
-                            />
-                        )}
-                        <InputError message={form.errors[field.name]} />
-                    </div>
-                ))}
+                            <div key={field.name} className="grid gap-2">
+                                <Label htmlFor={field.name}>
+                                    {field.label}
+                                    {field.required && ' *'}
+                                </Label>
+                                {field.type === 'select' ? (
+                                    <Select
+                                        name={field.name}
+                                        value={
+                                            form.data[field.name] ||
+                                            (field.required ? '' : 'none')
+                                        }
+                                        onValueChange={(value) =>
+                                            form.setData(
+                                                field.name,
+                                                value === 'none' ? '' : value,
+                                            )
+                                        }
+                                        required={field.required}
+                                    >
+                                        <SelectTrigger
+                                            id={field.name}
+                                            className="w-full"
+                                            aria-invalid={Boolean(
+                                                form.errors[field.name],
+                                            )}
+                                        >
+                                            <SelectValue
+                                                placeholder={`Choose ${field.label}`}
+                                            />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem
+                                                value="none"
+                                                disabled={field.required}
+                                            >
+                                                Choose {field.label}
+                                            </SelectItem>
+                                            {Object.entries(
+                                                field.options ?? {},
+                                            ).map(([id, label]) => (
+                                                <SelectItem key={id} value={id}>
+                                                    {label}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                ) : field.type === 'textarea' ? (
+                                    <textarea
+                                        id={field.name}
+                                        value={form.data[field.name]}
+                                        onChange={(event) =>
+                                            form.setData(
+                                                field.name,
+                                                event.target.value,
+                                            )
+                                        }
+                                        rows={3}
+                                        className={controlClass}
+                                    />
+                                ) : (
+                                    <Input
+                                        id={field.name}
+                                        type={field.type}
+                                        value={form.data[field.name]}
+                                        onChange={(event) =>
+                                            form.setData(
+                                                field.name,
+                                                event.target.value,
+                                            )
+                                        }
+                                        required={field.required}
+                                        step={
+                                            field.type === 'number'
+                                                ? '0.01'
+                                                : undefined
+                                        }
+                                        min={
+                                            field.type === 'number'
+                                                ? 0
+                                                : undefined
+                                        }
+                                    />
+                                )}
+                                <InputError message={form.errors[field.name]} />
+                            </div>
+                        ),
+                    )}
                 {resource === 'tenancies' && (
                     <p className="text-sm text-muted-foreground">
                         Move-out is the last day of occupancy. For a new

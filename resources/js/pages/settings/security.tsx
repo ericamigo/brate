@@ -1,12 +1,12 @@
+import { route } from 'ziggy-js';
 import { Form, Head } from '@inertiajs/react';
 import { useRef } from 'react';
-import SecurityController from '@/actions/App/Http/Controllers/Settings/SecurityController';
+
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { edit } from '@/routes/security';
 
 // oxfmt-ignore
 type Props = {
@@ -31,7 +31,8 @@ export default function Security(props: Props) {
                 />
 
                 <Form
-                    {...SecurityController.update.form()}
+                    action={route('user-password.update')}
+                    method="put"
                     options={{
                         preserveScroll: true,
                     }}
@@ -126,7 +127,7 @@ Security.layout = {
     breadcrumbs: [
         {
             title: 'Security settings',
-            href: edit(),
+            href: route('security.edit'),
         },
     ],
 };

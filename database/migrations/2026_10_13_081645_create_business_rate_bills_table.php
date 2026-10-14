@@ -10,6 +10,7 @@ return new class extends Migration
     {
         Schema::create('business_rate_bills', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('biller_id')->constrained()->restrictOnDelete();
             $table->foreignId('unit_id')->constrained()->restrictOnDelete();
             $table->string('reference_number')->nullable();
             $table->date('period_start');

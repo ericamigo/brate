@@ -14,7 +14,9 @@ const navigation = [
     ['/units', 'Units'],
     ['/tenants', 'Tenants'],
     ['/tenancies', 'Tenancies'],
+    ['/billers', 'Billers'],
     ['/business-rate-bills', 'Bills'],
+    ['/documents', 'Documents'],
 ];
 
 export const controlClass =
