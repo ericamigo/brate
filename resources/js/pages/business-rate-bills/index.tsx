@@ -8,6 +8,7 @@ import { Pages } from '@/components/pagination';
 import type { Pagination } from '@/components/pagination';
 import { Shell } from '@/components/page-shell';
 import { date } from '@/lib/date';
+import { formatMoney } from '@/lib/utils';
 
 type RecordRow = { id: number; [key: string]: unknown };
 const title = 'Business Rate Bills';
@@ -25,6 +26,12 @@ function cell(record: RecordRow, key: string): string {
             typeof value === 'object' && value !== null
                 ? (value as Record<string, unknown>)[part]
                 : null;
+    }
+    if (
+        key === 'amount' &&
+        (typeof value === 'string' || typeof value === 'number')
+    ) {
+        return formatMoney(value);
     }
     return key.endsWith('_date') ||
         key === 'period_start' ||
@@ -102,7 +109,10 @@ export default function Index({ columns, records }: Props) {
                                 className="border-t whitespace-nowrap"
                             >
                                 {Object.keys(columns).map((key) => (
-                                    <td key={key} className="px-5 py-4">
+                                    <td
+                                        key={key}
+                                        className={`px-5 py-4${key === 'amount' ? ' tabular-nums' : ''}`}
+                                    >
                                         {cell(record, key)}
                                     </td>
                                 ))}

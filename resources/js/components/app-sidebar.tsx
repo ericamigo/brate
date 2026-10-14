@@ -1,8 +1,6 @@
 import { route } from 'ziggy-js';
 import { Link } from '@inertiajs/react';
 import {
-    RiBookOpenLine as BookOpen,
-    RiGitRepositoryLine as FolderGit2,
     RiBarChartLine,
     RiBuildingLine,
     RiBuilding2Line,
@@ -15,7 +13,6 @@ import {
     RiUploadLine,
 } from '@remixicon/react';
 import AppLogo from '@/components/app-logo';
-import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import {
@@ -30,45 +27,81 @@ import {
 
 import type { NavItem } from '@/types';
 
-const mainNavItems: NavItem[] = [
-    { title: 'Occupancy Report', href: route('home'), icon: RiBarChartLine },
+const mainNavGroups: { label: string; items: NavItem[] }[] = [
     {
-        title: 'Companies',
-        href: route('companies.index'),
-        icon: RiBuildingLine,
+        label: 'Reports',
+        items: [
+            {
+                title: 'Occupancy Report',
+                href: route('home'),
+                icon: RiBarChartLine,
+            },
+        ],
     },
     {
-        title: 'Buildings',
-        href: route('buildings.index'),
-        icon: RiBuilding2Line,
-    },
-    { title: 'Units', href: route('units.index'), icon: RiDoorOpenLine },
-    { title: 'Tenants', href: route('tenants.index'), icon: RiGroupLine },
-    { title: 'Tenancies', href: route('tenancies.index'), icon: RiKeyLine },
-    { title: 'Billers', href: route('billers.index'), icon: RiBankLine },
-    {
-        title: 'Bills',
-        href: route('business-rate-bills.index'),
-        icon: RiBillLine,
-    },
-    {
-        title: 'Documents',
-        href: route('documents.index'),
-        icon: RiFileTextLine,
-    },
-    { title: 'Import', href: route('imports.index'), icon: RiUploadLine },
-];
-
-const footerNavItems: NavItem[] = [
-    {
-        title: 'Repository',
-        href: 'https://github.com/laravel/react-starter-kit',
-        icon: FolderGit2,
+        label: 'Properties',
+        items: [
+            {
+                title: 'Companies',
+                href: route('companies.index'),
+                icon: RiBuildingLine,
+            },
+            {
+                title: 'Buildings',
+                href: route('buildings.index'),
+                icon: RiBuilding2Line,
+            },
+            {
+                title: 'Units',
+                href: route('units.index'),
+                icon: RiDoorOpenLine,
+            },
+        ],
     },
     {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#react',
-        icon: BookOpen,
+        label: 'Occupancy',
+        items: [
+            {
+                title: 'Tenants',
+                href: route('tenants.index'),
+                icon: RiGroupLine,
+            },
+            {
+                title: 'Tenancies',
+                href: route('tenancies.index'),
+                icon: RiKeyLine,
+            },
+        ],
+    },
+    {
+        label: 'Billing',
+        items: [
+            {
+                title: 'Billers',
+                href: route('billers.index'),
+                icon: RiBankLine,
+            },
+            {
+                title: 'Bills',
+                href: route('business-rate-bills.index'),
+                icon: RiBillLine,
+            },
+        ],
+    },
+    {
+        label: 'Files & Data',
+        items: [
+            {
+                title: 'Documents',
+                href: route('documents.index'),
+                icon: RiFileTextLine,
+            },
+            {
+                title: 'Import',
+                href: route('imports.index'),
+                icon: RiUploadLine,
+            },
+        ],
     },
 ];
 
@@ -88,11 +121,16 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain items={mainNavItems} />
+                {mainNavGroups.map((group) => (
+                    <NavMain
+                        key={group.label}
+                        label={group.label}
+                        items={group.items}
+                    />
+                ))}
             </SidebarContent>
 
             <SidebarFooter>
-                <NavFooter items={footerNavItems} className="mt-auto" />
                 <NavUser />
             </SidebarFooter>
         </Sidebar>

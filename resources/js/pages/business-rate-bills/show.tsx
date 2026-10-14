@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { date } from '@/lib/date';
+import { formatMoney } from '@/lib/utils';
 
 type Bill = {
     id: number;
@@ -65,10 +66,7 @@ export default function Show({ bill }: { bill: Bill }) {
                     Unit: bill.unit.name,
                     Biller: bill.biller.name,
                     'Period covered': `${date(bill.period_start)} – ${date(bill.period_end)}`,
-                    Amount: new Intl.NumberFormat('en-GB', {
-                        style: 'currency',
-                        currency: 'GBP',
-                    }).format(Number(bill.amount)),
+                    Amount: formatMoney(bill.amount),
                     Stage: bill.stage
                         ? bill.stage[0].toUpperCase() + bill.stage.slice(1)
                         : null,
