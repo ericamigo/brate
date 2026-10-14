@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\BillingStage;
 use Carbon\CarbonImmutable;
 use Database\Factories\BusinessRateBillFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -14,9 +15,11 @@ use Illuminate\Support\Collection;
  * @property CarbonImmutable $period_start
  * @property CarbonImmutable $period_end
  */
-#[Fillable(['unit_id', 'reference_number', 'biller_id', 'period_start', 'period_end', 'amount'])]
+#[Fillable(['unit_id', 'case_number', 'reference_number', 'biller_id', 'period_start', 'period_end', 'amount', 'stage'])]
 class BusinessRateBill extends Model
 {
+    protected $attributes = ['stage' => 'unverified'];
+
     /** @use HasFactory<BusinessRateBillFactory> */
     use HasFactory;
 
@@ -39,6 +42,7 @@ class BusinessRateBill extends Model
             'period_start' => 'immutable_date',
             'period_end' => 'immutable_date',
             'amount' => 'decimal:2',
+            'stage' => BillingStage::class,
         ];
     }
 

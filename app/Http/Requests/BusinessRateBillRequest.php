@@ -2,7 +2,10 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\BillingStage;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Enum;
 
 class BusinessRateBillRequest extends FormRequest
 {
@@ -11,10 +14,12 @@ class BusinessRateBillRequest extends FormRequest
         return true;
     }
 
-    /** @return array<string, list<string>> */
+    /** @return array<string, list<string|Enum>> */
     public function rules(): array
     {
         return [
+            'case_number' => ['nullable', 'string', 'max:255'],
+            'stage' => ['nullable', Rule::enum(BillingStage::class)],
             'unit_id' => ['required', 'integer', 'exists:units,id'],
             'biller_id' => ['required', 'integer', 'exists:billers,id'],
             'reference_number' => ['nullable', 'string', 'max:255'],

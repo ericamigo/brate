@@ -13,6 +13,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Shell } from '@/components/page-shell';
+import { UnitCombobox } from './unit-combobox';
 const controlClass =
     'w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring';
 
@@ -98,7 +99,17 @@ export default function Edit({ record, fields }: Props) {
                                     {field.label}
                                     {field.required && ' *'}
                                 </Label>
-                                {field.type === 'select' ? (
+                                {field.name === 'unit_id' ? (
+                                    <UnitCombobox
+                                        options={field.options ?? {}}
+                                        value={form.data.unit_id}
+                                        onChange={(value) =>
+                                            form.setData('unit_id', value)
+                                        }
+                                        invalid={Boolean(form.errors.unit_id)}
+                                        disabled={form.processing}
+                                    />
+                                ) : field.type === 'select' ? (
                                     <Select
                                         name={field.name}
                                         value={
